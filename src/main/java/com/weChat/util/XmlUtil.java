@@ -10,9 +10,9 @@ import org.dom4j.io.SAXReader;
 
 /**
  * 消息与XML格式转换工具类
- * 
- * @author 13413527259
  *
+ * @author cjh
+ * @date 2019/5/7 11:02
  */
 public class XmlUtil {
 
