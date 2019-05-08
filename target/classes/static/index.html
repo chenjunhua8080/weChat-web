@@ -38,11 +38,11 @@
     });
   });
 
-
   /**
    * 刷新登录状态
    */
   let repeat = true;
+
   function refreshStatus() {
     $.get("/getLoginStatus/" + uuid, function (result) {
       var code = result.code;
@@ -60,13 +60,34 @@
           alert(result);
           window.location.reload();
       }
+      if (repeat) {
+        setTimeout(refreshStatus, 5000);
+      } else {
+        init(result.ticket, result.uuid, result.scan);
+      }
     });
-    if (repeat) {
-      setTimeout(refreshStatus, 5000);
-    }
+  }
+
+  /**
+   * 初始化
+   */
+  function init(ticket, uuid, scan) {
+    $.ajax({
+      url: "/init",
+      type: "GET",
+      data: {ticket: ticket, uuid: uuid, scan: scan},
+      success: function (result) {
+        console.log(result);
+        $('#content').text(result.user);
+      },
+      error: function (e) {
+        console.log(e);
+      }
+    });
   }
 </script>
 <body>
 <img id="qrCode" src="" alt="二维码">
+<div id="content"></div>
 </body>
 </html>

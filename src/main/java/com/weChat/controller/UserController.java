@@ -1,5 +1,8 @@
 package com.weChat.controller;
 
+import com.weChat.po.wechat.InitPO;
+import com.weChat.po.wechat.LoginPagePO;
+import com.weChat.request.InitRequest;
 import com.weChat.util.WeChatUtil;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +27,20 @@ public class UserController {
 
     @GetMapping("/getLoginStatus/{uuid}")
     public Map<String, Object> getLoginStatus(@PathVariable("uuid") String uuid) throws Exception {
+        Map<String, Object> loginStatus = WeChatUtil.waitForLogin(0, uuid);
+        return loginStatus;
+    }
+
+    @GetMapping("/init")
+    public InitPO init(InitRequest initRequest) throws Exception {
+        LoginPagePO loginPage = WeChatUtil.loginPage(initRequest);
+        InitPO init = WeChatUtil.init(loginPage);
+        WeChatUtil.getContact();
+        return init;
+    }
+
+    @GetMapping("/refresh")
+    public Map<String, Object> refresh(@PathVariable("uuid") String uuid) throws Exception {
         Map<String, Object> loginStatus = WeChatUtil.waitForLogin(0, uuid);
         return loginStatus;
     }

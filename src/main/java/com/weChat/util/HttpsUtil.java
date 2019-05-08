@@ -52,7 +52,7 @@ public class HttpsUtil {
         System.setProperty("jsse.enableSNIExtension", "false");
 
         client.executeMethod(get);
-        System.err.println(get.getQueryString());
+        log.info("response  --> {}", get.getResponseBodyAsString());
         return get.getResponseBodyAsStream();
     }
 
