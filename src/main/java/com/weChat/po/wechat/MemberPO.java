@@ -5,8 +5,16 @@ import lombok.Data;
 @Data
 public class MemberPO {
 
-    private String uid;
+    private int uid;
     private String userName;
     private String nickName;
+    private int attrStatus;
+    private String PYInitial;
+    private String PYQuanPin;
+    private String remarkPYInitial;
+    private String remarkPYQuanPin;
+    private int memberStatus;
+    private String displayName;
+    private String keyWord;
 
 }

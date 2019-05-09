@@ -27,12 +27,12 @@ public class InitPO {
     private String chatSet;
     private long clickReportInterval;
     private long clientVersion;
-    private List<InitContactPO> contactList;
+    private List<ContactPO> contactList;
     private int count;
     private int grayScale;
     private int inviteStartCount;
     private int MPSubscribeMsgCount;
-    private List<MPSubscribePO> MPSubscribeMsgList;
+    private List<MPSubscribeMsgPO> MPSubscribeMsgList;
     private String sKey;
     private SyncKeyPO syncKey;
     private long systemTime;

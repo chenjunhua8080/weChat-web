@@ -2,10 +2,11 @@ package com.weChat.util;
 
 import com.weChat.global.Config;
 import com.weChat.po.wechat.ContactPO;
-import com.weChat.po.wechat.InitContactPO;
+import com.weChat.po.wechat.ContactListPO;
 import com.weChat.po.wechat.InitPO;
 import com.weChat.po.wechat.LoginPagePO;
-import com.weChat.po.wechat.MPSubscribePO;
+import com.weChat.po.wechat.MPArticlePO;
+import com.weChat.po.wechat.MPSubscribeMsgPO;
 import com.weChat.po.wechat.MemberPO;
 import com.weChat.po.wechat.SyncKeyItemPO;
 import com.weChat.request.InitRequest;
@@ -18,7 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
 
 /**
- * web微信用到的API
+ * web微信用到的API<br/>
+ *
+ * <b>有个问题，结果返回到页面时候首字母大写的会自动转成小写</b>
  *
  * @author 陈俊华
  * @date 2018年1月19日
@@ -89,6 +92,8 @@ public final class WeChatUtil {
      */
     private final static String sendMsg = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg?pass_ticket=PASS_TICKET";
 
+
+    public static String[] ignoreLowercase = {"MP", "PY"};
 
     /**
      * 1. 获取UUID（参考方法 getUUID） param : appid: wx782c26e4c19acffb redirect_uri: https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxnewloginpage
@@ -175,7 +180,11 @@ public final class WeChatUtil {
      *
      * @param initRequest ticket: A3ytELDXEHJ9WmEzyBjawS_x@qrticket_0 uuid: AeioKQv69A== lang: zh_CN scan: 1557286172
      * fun: new version: v2 lang: zh_CN
-     * @return <error>
+     * @return 重要的cookie： mm_lang	zh_CN webwx_auth_ticket CIsBEOTzr3wagAEVQ56NbJ0AViYB9E0nqg0NSD24/60LWp+GNBCyVzrjgfait2R8abbe9V/JU7Qh
+     * webwx_data_ticket gSfvfQbvNCJnYqprUqJzhjdt wxloadtime 1557373727 wxsid gJeuoFQiQY5LBzlD wxuin 3162028971
+     *
+     * 主体：
+     * <error>
      * <ret>0</ret>
      * <message></message>
      * <skey>@crypt_253d2949_b195b14efa911d623d9eae272cebd068</skey>
@@ -187,6 +196,7 @@ public final class WeChatUtil {
      */
     public static LoginPagePO loginPage(InitRequest initRequest) throws Exception {
         LoginPagePO loginPagePO = new LoginPagePO();
+
         Map<String, Object> query = new HashMap<>();
         query.put("ticket", initRequest.getTicket());
         query.put("uuid", initRequest.getUuid());
@@ -194,8 +204,10 @@ public final class WeChatUtil {
         query.put("lang", Config.wechat_lang);
         query.put("fun", "new");
         query.put("version", 2);
-        query.put("lang", Config.wechat_lang);
-        Map<String, Object> map = XmlUtil.parseXml(HttpsUtil.get(loginPage, query, true));
+
+        String resp = HttpsUtil.get(loginPage, query);
+        Map<String, Object> map = XmlUtil.parseXml(resp, "utf-8");
+
         loginPagePO.setRet(Integer.parseInt(map.get("ret").toString()));
         loginPagePO.setMessage(map.get("message").toString());
         loginPagePO.setSKey(map.get("skey").toString());
@@ -209,7 +221,7 @@ public final class WeChatUtil {
     /**
      * 5.初始化数据
      *
-     * @param loginPagePO r: 1788276847 lang: zh_CN pass_ticket: W6hDdkay6sqO8qdGja5%2F8xPzGEJuC4lvSwCQ1z1%2BbuigRfdinyjQJxfbGInoAI4c
+     * @param passTicket r: 1788276847 lang: zh_CN pass_ticket: W6hDdkay6sqO8qdGja5%2F8xPzGEJuC4lvSwCQ1z1%2BbuigRfdinyjQJxfbGInoAI4c
      *
      * head: BaseRequest: {Uin: "3162028971", Sid: "MqHSJVdEym+yvsiP", Skey: "@crypt_253d2949_b195b14efa911d623d9eae272cebd068",…}
      * @return BaseResponse: {Ret: 0, ErrMsg: ""} ChatSet: "filehelper,@@1381ee5f36f7d66f012eb8234d1436f66f67808c18ad821edf4d9987341df854,@d407a503d84fdd9118f1bf291eb11765,@5d955c120c989650af9367747e648fcabbb68a9e852182f868f7876728410129,weixin,filehelper,@3bc67fd76d0485bda7bbe211a2949591,@@468d5e7ec42a5a6b8cf504be959f8a761f970fd42aed3447820f63bbb69887fe,@@d381e5b4a8429798c24dd2abf4fa567e53646bcfff4fb214ecd8fead9c21ad43,@d9252832c94aebd2ca40e21db467fe88,@@b5d0d1a17bc2d93f0b33693c0cf7a1b8deb19312e860a65e446f6dd8fd703c60,@@1623c80424561b674d2fdd7d238097871856af08ef91ce991036fc78f84fa38e,@@e5b0924d8093361a2a7ee29875e71a15162f7f0cb84432e88025d699e33c1bb5,@52b5c3b9e05d1044f3969f320c7085d1,@dcd76f8d0444ab9e187e07744b1a0338,@7c426167cb95f8851b90d08bb1e44de7,@b6b1363e73e12d39b45ae59948735bcf,@8c072439020c1496da5cb86cb9ddfa3b,@@f065cc65634474261c409574898801ef53e93ea1c6809cadac836dd3599cf57c,fmessage,newsapp,@@636dc67487ec9f531f7fbb3a4d0f905813acf0e5a33449c62fb42104fd560681,@6390c6a17e6ed443388601341df916f0285f14ebe19e4c3d397e818c26568d5e,@0d5d370088593da99f81721e6b8bbecad05e5f78764bdde3bcb100ced5eba0c0,@@01c40efbdbec8d0220701a6711ad82760542c576407af76ed6b0cf34ab1af06e,@66cefb36cdc57f3ea4783d226a0a56c94b2309f14cce2f2e07cc4851a61949a2,"
@@ -220,26 +232,28 @@ public final class WeChatUtil {
      * Val: 661091587}, {Key: 3, Val: 661091588},…]} SystemTime: 1557286175 User: {Uin: 3162028971, UserName:
      * "@dbc955536b0b80b8e9154560f9cc8871fcdf150c087335212ef9219b7cd28764",…}
      */
-    public static InitPO init(LoginPagePO loginPagePO) throws Exception {
+    public static InitPO init(String sid, String sKey, String uin, String passTicket) throws Exception {
         Map<String, Object> map = new HashMap<>();
         map.put("DeviceID", getDeviceId());
-        map.put("Sid", loginPagePO.getWxSid());
-        map.put("Skey", loginPagePO.getSKey());
-        map.put("Uin", loginPagePO.getWxUin());
+        map.put("Sid", sid);
+        map.put("Skey", sKey);
+        map.put("Uin", uin);
         Map<String, Object> base = new HashMap<>();
         base.put("BaseRequest", map);
         Map<String, Object> query = new HashMap<>();
         query.put("r", System.currentTimeMillis());
         query.put("lang", Config.wechat_lang);
-        query.put("pass_ticket", loginPagePO.getPassTicket());
+        query.put("pass_ticket", passTicket);
         JSONObject resp = JSONObject.fromObject(HttpsUtil.post(init, query, base));
 
         Map<String, Class> childClass = new HashMap<>();
-        childClass.put("contactList", InitContactPO.class);
+        childClass.put("contactList", ContactPO.class);
         childClass.put("list", SyncKeyItemPO.class);
-        childClass.put("MPSubscribeMsgList", MPSubscribePO.class);
+        childClass.put("MPSubscribeMsgList", MPSubscribeMsgPO.class);
+        childClass.put("MPArticleList", MPArticlePO.class);
+        childClass.put("memberList", MemberPO.class);
 
-        InitPO initPO = (InitPO) JsonUtil.toBean(resp, InitPO.class, childClass);
+        InitPO initPO = (InitPO) JsonUtil.toBean(resp, InitPO.class, ignoreLowercase, childClass);
         return initPO;
     }
 
@@ -285,7 +299,7 @@ public final class WeChatUtil {
      * @return BaseResponse: {Ret: 0, ErrMsg: ""} MemberCount: 436 MemberList: [{Uin: 0, UserName: "weixin", NickName:
      * "å¾®ä¿¡å›¢é˜Ÿ",…},…] Seq: 0
      */
-    public static ContactPO getContact(String passTicket, String sKey) throws Exception {
+    public static ContactListPO getContact(String passTicket, String sKey, String sid, String uin) throws Exception {
         Map<String, Object> query = new HashMap<>();
         query.put("lang", Config.wechat_lang);
         query.put("pass_ticket", passTicket);
@@ -293,13 +307,17 @@ public final class WeChatUtil {
         query.put("seq", 0);
         query.put("skey", sKey);
 
-        JSONObject resp = JSONObject.fromObject(HttpsUtil.get(getContact, query));
+        Map<String, String> headers = new HashMap<>();
+        headers.put("cookie", "wxsid=" + sid + ";wxuin=" + uin + ";");
+
+        JSONObject resp = JSONObject.fromObject(HttpsUtil.get(getContact, query, headers));
 
         Map<String, Class> childClass = new HashMap<>();
-        childClass.put("memberList", MemberPO.class);
-        ContactPO contactPO = (ContactPO) JsonUtil.toBean(resp, ContactPO.class, childClass);
+        childClass.put("memberList", ContactPO.class);
+        ContactListPO contactListPO = (ContactListPO) JsonUtil
+            .toBean(resp, ContactListPO.class, ignoreLowercase, childClass);
 
-        return contactPO;
+        return contactListPO;
     }
 
     /**

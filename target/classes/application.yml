@@ -5,6 +5,9 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/wechat_web
     username: root
     password: root
+  #json数据格式
+  jackson:
+    c
 #mybatis配置
 mybatis-plus:
   #映射文件位置

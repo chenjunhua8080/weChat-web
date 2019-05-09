@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -29,6 +30,9 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 @Slf4j
 public class HttpsUtil {
 
+    /**
+     * 发送get请求，返回响应流
+     */
     public static InputStream get(String url, Map<String, Object> query, boolean resultStream) throws Exception {
         log.info("url     --> {}", url);
         log.info("args[]  --> {}", query == null ? null : query.toString());
@@ -57,7 +61,7 @@ public class HttpsUtil {
     }
 
     /**
-     * 发送get请求
+     * 发送get请求，返回响应主体字符串
      *
      * @author cjh
      * @date 2019/5/7 15:41
@@ -95,6 +99,90 @@ public class HttpsUtil {
         return sb.toString();
     }
 
+    /**
+     * 发送get请求，返回响应主体字符串
+     *
+     * @author cjh
+     * @date 2019/5/7 15:41
+     */
+    public static String get(String url, Map<String, Object> query, Map<String, String> headers) throws Exception {
+        log.info("url     --> {}", url);
+        log.info("args[]  --> {}", query == null ? null : query.toString());
+        log.info("method  --> {}", "GET");
+
+        HttpClient client = new HttpClient();
+        GetMethod get = new GetMethod(url);
+        if (!query.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            List<String> list = new ArrayList<>(query.keySet());
+            for (int i = 0; i < list.size(); i++) {
+                String key = list.get(i);
+                sb.append(key + "=" + query.get(key) + "&");
+            }
+            String params = sb.toString();
+            params = params.substring(0, params.lastIndexOf('&'));
+            get.setQueryString(params);
+        }
+
+        if (!headers.isEmpty()) {
+            for (String item : headers.keySet()) {
+                get.addRequestHeader(item, headers.get(item));
+            }
+        }
+
+        System.setProperty("jsse.enableSNIExtension", "false");
+
+        client.executeMethod(get);
+        BufferedReader br = new BufferedReader(new InputStreamReader(get.getResponseBodyAsStream(), "utf-8"));
+        String line;
+        StringBuilder sb = new StringBuilder();
+        while ((line = br.readLine()) != null) {
+            sb.append(line);
+        }
+        br.close();
+        log.info("response  --> {}", sb);
+        return sb.toString();
+    }
+
+    /**
+     * 发送get请求，返回响应头(headers)和响应主体(body)
+     *
+     * @author cjh
+     * @date 2019/5/7 15:41
+     */
+    public static JSONObject getReturnHeadAndBody(String url, Map<String, Object> query) throws Exception {
+        log.info("url     --> {}", url);
+        log.info("args[]  --> {}", query == null ? null : query.toString());
+        log.info("method  --> {}", "GET");
+
+        HttpClient client = new HttpClient();
+        GetMethod get = new GetMethod(url);
+        if (query != null) {
+            StringBuilder sb = new StringBuilder();
+            List<String> list = new ArrayList<>(query.keySet());
+            for (int i = 0; i < list.size(); i++) {
+                String key = list.get(i);
+                sb.append(key + "=" + query.get(key) + "&");
+            }
+            String params = sb.toString();
+            params = params.substring(0, params.lastIndexOf('&'));
+            get.setQueryString(params);
+        }
+
+        System.setProperty("jsse.enableSNIExtension", "false");
+
+        client.executeMethod(get);
+
+        JSONObject result = new JSONObject();
+        result.put("body", get.getResponseBodyAsString());
+        result.put("headers", JSONArray.fromObject(get.getResponseHeaders()));
+
+        return result;
+    }
+
+    /**
+     * 发送post请求
+     */
     public static String post(String url, Map<String, Object> map) throws Exception {
         log.info("url     --> {}", url);
         log.info("args[]  --> {}", map == null ? null : map.toString());
@@ -119,6 +207,9 @@ public class HttpsUtil {
         return sb.toString();
     }
 
+    /**
+     * 发送post请求
+     */
     public static String post(String url, Map<String, Object> query, Map<String, Object> map) throws Exception {
         log.info("url     --> {}", url);
         log.info("query   --> {}", query == null ? null : query.toString());
