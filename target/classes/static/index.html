@@ -50,23 +50,44 @@
    * 开始执行
    */
   $(function () {
-    //请求二维码
+    login();
+  });
+
+  /**
+   * 判断是否登录
+   */
+  function login() {
+    $.get("/isLogin", function (result) {
+      if (result == null || result == "") {
+        //未登录，获取二维码
+        getQrCode();
+      } else {
+        //初始化
+        init();
+        //获取联系人
+        initContact();
+      }
+    });
+  }
+
+  /**
+   * 请求二维码
+   */
+  function getQrCode() {
     $.get("/getQrCode", function (result) {
       uuid = result.uuid;
       if (uuid == null) {
-        if (result.contact != null) {
-          initData(result);
-        } else {
-          alert("稍后再试");
-        }
+        alert("稍后再试");
       } else {
-        $('#qrCode').toggle(1000);
+        //设置二维码
         $('#qrCode').attr("src", result.qrCode);
+        $('#qrCode').toggle(1000);
+
         //刷新登录状态
         refreshStatus()
       }
     });
-  });
+  }
 
   /**
    * 刷新登录状态
@@ -74,27 +95,33 @@
   let repeat = true;
 
   function refreshStatus() {
-    $.get("/getLoginStatus/" + uuid, function (result) {
+    let url = "/getLoginStatus/" + uuid;
+    $.get(url, function (result) {
       let code = result.code;
       switch (code) {
         case 200:
+          //登录成功，停止刷新
           repeat = false;
           $('#qrCode').toggle(2000);
           break;
         case 201:
+          //扫描成功，设置头像
           $('#qrCode').attr("src", result.userAvatar);
           break;
         case 408:
-          console.log(result);
           break;
         default:
-          alert(result);
+          alert(JSON.stringify(result));
           window.location.reload();
       }
       if (repeat) {
-        setTimeout(refreshStatus, 5000);
+        //继续刷新
+        refreshStatus();
       } else {
-        init(result.ticket, result.uuid, result.scan);
+        //初始化
+        init();
+        //获取联系人
+        initContact();
       }
     });
   }
@@ -102,12 +129,18 @@
   /**
    * 初始化
    */
-  function init(ticket, uuid, scan) {
+  function init() {
     $.ajax({
       url: "/init",
       type: "GET",
-      data: {ticket: ticket, uuid: uuid, scan: scan},
       success: function (result) {
+        console.log(result);
+        let baseResponse = result.baseResponse;
+        if (baseResponse.ret!=0){
+          //请求数据错误，重新登录
+          alert(JSON.stringify(baseResponse));
+          window.location.reload();
+        }
         initData(result);
       },
       error: function (e) {
@@ -116,30 +149,39 @@
     });
   }
 
+  /**
+   * 初始化通讯录
+   */
+  function initContact() {
+    $.ajax({
+      url: "/getContact",
+      type: "GET",
+      success: function (result) {
+        console.log(result);
+        let baseResponse = result.baseResponse;
+        if (baseResponse.ret!=0){
+          //请求数据错误，重新登录
+          alert(JSON.stringify(baseResponse));
+          window.location.reload();
+        }
+        initContactData(result);
+      },
+      error: function (e) {
+        console.log(e);
+      }
+    });
+  }
+
+  /**
+   * 初始化数据
+   */
   function initData(result) {
-    console.log(result);
     //设置标题
-    $('#hello').html(result.init.user.nickName);
-    //设置好友列表
-    let contactHtml = "<h2>好友列表</h2>";
-    let memberList = result.contact.memberList;
-    let contact;
-    for (let i = 0; i < memberList.length; i++) {
-      contact = memberList[i];
-      if (contact.contactFlag == 3 && (contact.verifyFlag == 8 || contact.verifyFlag == 24)) {
-        continue;
-      }
-      contactHtml += "<p>" + contact.nickName;
-      if (contact.remarkName != null && contact.remarkName != "") {
-        contactHtml += "(" + contact.remarkName + ")";
-      }
-      contactHtml += "</p>";
-    }
-    $('#contact').html(contactHtml);
+    $('#hello').html(result.user.nickName);
 
     //设置公众号
     let mpHtml = "<h2>公众号文章</h2>";
-    let mpList = result.init.mpsubscribeMsgList;
+    let mpList = result.mpsubscribeMsgList;
     let mp;
     for (let i = 0; i < mpList.length; i++) {
       mp = mpList[i];
@@ -154,13 +196,36 @@
 
     //设置会话
     let sessionHtml = "<h2>最近会话</h2>";
-    let sessionList = result.init.contactList;
+    let sessionList = result.contactList;
     let session;
     for (let i = 0; i < sessionList.length; i++) {
       session = sessionList[i];
-      sessionHtml += "<p>" + session.nickName + "</p>";
+      sessionHtml += "<p>" + session.nickName;
+      if (session.remarkName != null && session.remarkName != "") {
+        sessionHtml += "(" + session.remarkName + ")";
+      }
+      sessionHtml += "</p>";
     }
     $('#session').html(sessionHtml);
+  }
+
+  /**
+   * 初始化通讯录数据
+   */
+  function initContactData(result) {
+    //设置好友列表
+    let contactHtml = "<h2>好友列表("+result.memberCount+")</h2>";
+    let contactList = result.memberList;
+    let contact;
+    for (let i = 0; i < contactList.length; i++) {
+      contact = contactList[i];
+      contactHtml += "<p>" + contact.nickName;
+      if (contact.remarkName != null && contact.remarkName != "") {
+        contactHtml += "(" + contact.remarkName + ")";
+      }
+      contactHtml += "</p>";
+    }
+    $('#contact').html(contactHtml);
   }
 </script>
 <body>

@@ -1,15 +1,15 @@
 package com.weChat.util;
 
 import com.weChat.global.Config;
-import com.weChat.po.wechat.ContactPO;
+import com.weChat.po.wechat.BatchContactPO;
 import com.weChat.po.wechat.ContactListPO;
+import com.weChat.po.wechat.ContactPO;
 import com.weChat.po.wechat.InitPO;
 import com.weChat.po.wechat.LoginPagePO;
 import com.weChat.po.wechat.MPArticlePO;
 import com.weChat.po.wechat.MPSubscribeMsgPO;
 import com.weChat.po.wechat.MemberPO;
 import com.weChat.po.wechat.SyncKeyItemPO;
-import com.weChat.request.InitRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -178,7 +178,7 @@ public final class WeChatUtil {
     /**
      * 4.初始化登录页面，直接用从waitForLogin返回的uri请求
      *
-     * @param initRequest ticket: A3ytELDXEHJ9WmEzyBjawS_x@qrticket_0 uuid: AeioKQv69A== lang: zh_CN scan: 1557286172
+     * ticket: A3ytELDXEHJ9WmEzyBjawS_x@qrticket_0 uuid: AeioKQv69A== lang: zh_CN scan: 1557286172
      * fun: new version: v2 lang: zh_CN
      * @return 重要的cookie： mm_lang	zh_CN webwx_auth_ticket CIsBEOTzr3wagAEVQ56NbJ0AViYB9E0nqg0NSD24/60LWp+GNBCyVzrjgfait2R8abbe9V/JU7Qh
      * webwx_data_ticket gSfvfQbvNCJnYqprUqJzhjdt wxloadtime 1557373727 wxsid gJeuoFQiQY5LBzlD wxuin 3162028971
@@ -194,13 +194,13 @@ public final class WeChatUtil {
      * <isgrayscale>1</isgrayscale>
      * </error>
      */
-    public static LoginPagePO loginPage(InitRequest initRequest) throws Exception {
+    public static LoginPagePO loginPage(String ticket, String uuid, String scan) throws Exception {
         LoginPagePO loginPagePO = new LoginPagePO();
 
         Map<String, Object> query = new HashMap<>();
-        query.put("ticket", initRequest.getTicket());
-        query.put("uuid", initRequest.getUuid());
-        query.put("scan", initRequest.getScan());
+        query.put("ticket", ticket);
+        query.put("uuid", uuid);
+        query.put("scan", scan);
         query.put("lang", Config.wechat_lang);
         query.put("fun", "new");
         query.put("version", 2);
@@ -321,17 +321,22 @@ public final class WeChatUtil {
     }
 
     /**
-     * 8.分批获取联系人
+     * 8.分批获取指定联系人
+     *
+     * 获取chatSet的userName 的详细信息，有些在init和getContact 都可能获取不到(比如最近没新信息，也没保存到通讯录的群组。也可能根据手机里微信的聊天列表)
      *
      * @param args type: ex r: 1557286176637 lang: zh_CN pass_ticket: W6hDdkay6sqO8qdGja5%2F8xPzGEJuC4lvSwCQ1z1%2BbuigRfdinyjQJxfbGInoAI4c
      *
      * head: BaseRequest: {Uin: 3162028971, Sid: "MqHSJVdEym+yvsiP", Skey: "@crypt_253d2949_b195b14efa911d623d9eae272cebd068",…}
      * Count: 17 List: [1: {UserName: "@52b5c3b9e05d1044f3969f320c7085d1", EncryChatRoomId: ""} 2: {UserName:
      * "@dcd76f8d0444ab9e187e07744b1a0338", EncryChatRoomId: ""},…]
+     *
+     * 备注：这里的list 取值于init.chatSet除去特殊值 和 对应init.ContactList里不是"KeyWord": "gh_"(公众号)的数据
+     *
      * @return BaseResponse: {Ret: 0, ErrMsg: ""} ContactList: [{Uin: 0, UserName: "@@01c40efbdbec8d0220701a6711ad82760542c576407af76ed6b0cf34ab1af06e",…},…]
      * Count: 17
      */
-    public static JSONObject batchGetContact(Map<String, Object> args) throws Exception {
+    public static BatchContactPO batchGetContact(Map<String, Object> args) throws Exception {
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
         for (int i = 0; i < 15; i++) {
@@ -344,10 +349,8 @@ public final class WeChatUtil {
         map.put("Uin", args.get("wxuin"));
         Map<String, Object> base = new HashMap<>();
         base.put("BaseRequest", map);
-        int count = 0;
-        base.put("Count", count);
-        List<Map<String, String>> list = new ArrayList<>();//map:UserName,EncryChatRoomId
-        base.put("List", list);
+        base.put("Count", args.get("count"));
+        base.put("List", args.get("list"));
 
         Map<String, Object> query = new HashMap<>();
         query.put("type", "ex");
@@ -355,7 +358,65 @@ public final class WeChatUtil {
         query.put("lang", Config.wechat_lang);
         query.put("pass_ticket", args.get("pass_ticket"));
         JSONObject resp = JSONObject.fromObject(HttpsUtil.post(batchGetContact, query, base));
-        return resp;
+
+        Map<String, Class> childClass = new HashMap<>();
+        childClass.put("contactList", ContactPO.class);
+        childClass.put("memberList", ContactPO.class);
+        BatchContactPO batchContactPO = (BatchContactPO) JsonUtil
+            .toBean(resp, BatchContactPO.class, ignoreLowercase, childClass);
+        return batchContactPO;
+    }
+
+    /**
+     * 获取chatSet的userName 的详细信息，有些在init和getContact 都可能获取不到(比如最近没新信息，也没保存到通讯录的群组。也可能根据手机里微信的聊天列表)
+     * 这里的list 取值于init.chatSet除去特殊值 和 对应init.ContactList里不是"KeyWord": "gh_"(公众号)的数据
+     */
+    public static InitPO batchGetContact(InitPO initPO, LoginPagePO loginPagePO) throws Exception {
+        String chatSet = initPO.getChatSet();
+        log.info("chatSet:{}", chatSet);
+        List<ContactPO> contactList = initPO.getContactList();
+        String[] split = chatSet.split(",");
+        List<Map<String, String>> list = new ArrayList<>();
+        boolean needAdd=false;
+        for (String item : split) {
+            if (item.contains("@")) {
+                for (ContactPO contactPO : contactList) {
+                    if (item.equals(contactPO.getUserName())) {
+                        if ("gh_".equals(contactPO.getKeyWord())) {
+                            needAdd=false;
+                        }else {
+                            needAdd=true;
+                        }
+                        break;
+                    }else {
+                        needAdd=true;
+                    }
+                }
+                if (needAdd) {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("UserName", item);
+                    map.put("EncryChatRoomId", "");
+                    list.add(map);
+                }
+            }
+        }
+        Map<String, Object> param = new HashMap<>();
+        param.put("pass_ticket", loginPagePO.getPassTicket());
+        param.put("wxsid", loginPagePO.getWxSid());
+        param.put("skey", loginPagePO.getSKey());
+        param.put("wxuin", loginPagePO.getWxUin());
+        param.put("count", list.size());
+        param.put("list", list);
+        BatchContactPO batchContactPO = batchGetContact(param);
+
+        if (batchContactPO.getBaseResponse().getRet() == 0) {
+            contactList.addAll(batchContactPO.getContactList());
+            initPO.setCount(contactList.size());
+        } else {
+            log.info("batchGetContact错误：{}", batchContactPO);
+        }
+
+        return initPO;
     }
 
     /**
