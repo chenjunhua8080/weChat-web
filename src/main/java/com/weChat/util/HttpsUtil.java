@@ -175,7 +175,8 @@ public class HttpsUtil {
 
         JSONObject result = new JSONObject();
         result.put("body", get.getResponseBodyAsString());
-        result.put("headers", JSONArray.fromObject(get.getResponseHeaders()));
+        Header[] responseHeaders = get.getResponseHeaders();
+        result.put("headers", JSONArray.fromObject(responseHeaders));
 
         return result;
     }

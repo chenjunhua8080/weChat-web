@@ -24,4 +24,10 @@ public class LoginPagePO {
     private String passTicket;
     private int isGrayscale;
 
+    //cookie字段
+    private String webwx_data_ticket;
+    private String webwx_auth_ticket;
+    private long wxloadtime;
+    private String webwxuvid;
+
 }

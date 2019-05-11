@@ -1,6 +1,7 @@
 package com.weChat.util;
 
 import com.weChat.global.Config;
+import com.weChat.po.wechat.AddMsgListPO;
 import com.weChat.po.wechat.BatchContactPO;
 import com.weChat.po.wechat.ContactListPO;
 import com.weChat.po.wechat.ContactPO;
@@ -10,12 +11,16 @@ import com.weChat.po.wechat.MPArticlePO;
 import com.weChat.po.wechat.MPSubscribeMsgPO;
 import com.weChat.po.wechat.MemberPO;
 import com.weChat.po.wechat.SyncKeyItemPO;
+import com.weChat.po.wechat.SyncKeyPO;
+import com.weChat.po.wechat.WebWxSyncPO;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 /**
@@ -195,8 +200,6 @@ public final class WeChatUtil {
      * </error>
      */
     public static LoginPagePO loginPage(String ticket, String uuid, String scan) throws Exception {
-        LoginPagePO loginPagePO = new LoginPagePO();
-
         Map<String, Object> query = new HashMap<>();
         query.put("ticket", ticket);
         query.put("uuid", uuid);
@@ -205,9 +208,10 @@ public final class WeChatUtil {
         query.put("fun", "new");
         query.put("version", 2);
 
-        String resp = HttpsUtil.get(loginPage, query);
-        Map<String, Object> map = XmlUtil.parseXml(resp, "utf-8");
-
+        JSONObject respObject = HttpsUtil.getReturnHeadAndBody(loginPage, query);
+        Map<String, Object> map = XmlUtil.parseXml(respObject.getString("body"), "utf-8");
+        //主体字段
+        LoginPagePO loginPagePO = new LoginPagePO();
         loginPagePO.setRet(Integer.parseInt(map.get("ret").toString()));
         loginPagePO.setMessage(map.get("message").toString());
         loginPagePO.setSKey(map.get("skey").toString());
@@ -215,6 +219,35 @@ public final class WeChatUtil {
         loginPagePO.setWxUin(map.get("wxuin").toString());
         loginPagePO.setPassTicket(map.get("pass_ticket").toString());
         loginPagePO.setIsGrayscale(Integer.parseInt(map.get("isgrayscale").toString()));
+        //cookie字段
+        JSONArray headers = respObject.getJSONArray("headers");
+        for (int i = 0; i < headers.size(); i++) {
+            JSONObject head = headers.getJSONObject(i);
+            String headString = head.getString("value");
+            log.info("head:{}", headString);
+            if (headString.contains(";")) {
+                String sub = headString.substring(0, headString.indexOf(";"));
+                //不能用=分割可能含有=
+                if (sub.contains("=")) {
+                    String key = sub.substring(0, sub.indexOf("="));
+                    String value = sub.substring(sub.indexOf("=") + 1);
+                    switch (key) {
+                        case "webwx_data_ticket":
+                            loginPagePO.setWebwx_data_ticket(value);
+                            break;
+                        case "webwx_auth_ticket":
+                            loginPagePO.setWebwx_auth_ticket(value);
+                            break;
+                        case "wxloadtime":
+                            loginPagePO.setWxloadtime(Long.parseLong(value));
+                            break;
+                        case "webwxuvid":
+                            loginPagePO.setWebwxuvid(value);
+                            break;
+                    }
+                }
+            }
+        }
         return loginPagePO;
     }
 
@@ -374,22 +407,32 @@ public final class WeChatUtil {
     public static InitPO batchGetContact(InitPO initPO, LoginPagePO loginPagePO) throws Exception {
         String chatSet = initPO.getChatSet();
         log.info("chatSet:{}", chatSet);
+
         List<ContactPO> contactList = initPO.getContactList();
+        //除去contactList本身包含的公众号
+        Iterator<ContactPO> iterator = contactList.iterator();
+        while (iterator.hasNext()) {
+            ContactPO contactPO = iterator.next();
+            if ("gh_".equals(contactPO.getKeyWord())) {
+                iterator.remove();
+            }
+        }
+        //将chatSet中的联系人添加到contactList
         String[] split = chatSet.split(",");
         List<Map<String, String>> list = new ArrayList<>();
-        boolean needAdd=false;
+        boolean needAdd = false;
         for (String item : split) {
             if (item.contains("@")) {
                 for (ContactPO contactPO : contactList) {
                     if (item.equals(contactPO.getUserName())) {
                         if ("gh_".equals(contactPO.getKeyWord())) {
-                            needAdd=false;
-                        }else {
-                            needAdd=true;
+                            needAdd = false;
+                        } else {
+                            needAdd = true;
                         }
                         break;
-                    }else {
-                        needAdd=true;
+                    } else {
+                        needAdd = true;
                     }
                 }
                 if (needAdd) {
@@ -422,64 +465,74 @@ public final class WeChatUtil {
     /**
      * 9.同步刷新
      *
-     * @param args r: 1557286176625 skey: @crypt_253d2949_b195b14efa911d623d9eae272cebd068 sid: MqHSJVdEym+yvsiP uin:
-     * 3162028971 deviceid: e624739355264879 synckey: 1_661091461|2_661091587|3_661091588|1000_1557272238
-     * ，第一次从init的返回拿，后面从webwxsync拿 _: 1557284851581
+     * @param loginPagePO
+     * r: 1557286176625
+     * skey: @crypt_253d2949_b195b14efa911d623d9eae272cebd068
+     * sid: MqHSJVdEym+yvsiP
+     * uin:3162028971
+     * deviceid: e624739355264879
+     * synckey: 1_661091461|2_661091587|3_661091588|1000_1557272238
+     * synckey第一次从init的返回拿，后面从webwxsync拿 _: 1557284851581
+     *
      * @return window.synccheck={retcode:"0",selector:"2"}
      */
-    public static JSONObject syncCheck(Map<String, Object> args) throws Exception {
+    public static JSONObject syncCheck(LoginPagePO loginPagePO, SyncKeyPO syncKeyPO) throws Exception {
         Map<String, Object> query = new HashMap<>();
         query.put("r", System.currentTimeMillis());
-        query.put("skey", args.get("skey"));
-        query.put("sid", args.get("wxsid"));
-        query.put("uin", args.get("wxuin"));
+        query.put("skey", loginPagePO.getSKey());
+        query.put("sid", loginPagePO.getWxSid());
+        query.put("uin", loginPagePO.getWxUin());
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
         for (int i = 0; i < 15; i++) {
             sb.append(random.nextInt(10));
         }
         query.put("deviceid", "e" + sb.toString());
-        Map<String, Object> syncKeyMap = (Map<String, Object>) args.get("SyncKey");
-        int syncCount = Integer.parseInt(syncKeyMap.get("Count").toString());
-        List<Map<String, String>> syncList = (List<Map<String, String>>) syncKeyMap.get("List");//{Key,Val}
+
+        List<SyncKeyItemPO> syncList = syncKeyPO.getList();//{Key,Val}
         sb.setLength(0);
-        for (Map<String, String> item : syncList) {
-            sb.append(item.get("Key"));
+        for (SyncKeyItemPO item : syncList) {
+            sb.append(item.getKey());
             sb.append("_");
-            sb.append(item.get("Val"));
+            sb.append(item.getVal());
             sb.append("|");
         }
         sb.delete(sb.lastIndexOf("|"), sb.length());
         query.put("synckey", sb.toString());
         query.put("_", System.currentTimeMillis());
 
-        JSONObject resp = JSONObject.fromObject(HttpsUtil.get(syncCheck, query));
+        Map<String, String> headers = new HashMap<>();
+        headers.put("cookie",
+            "webwx_data_ticket=" + loginPagePO.getWebwx_data_ticket() + ";wxuin=" + loginPagePO.getWxUin() + ";");
+
+        String respStr = HttpsUtil.get(syncCheck, query, headers);
+        JSONObject resp = JSONObject.fromObject(respStr.substring(respStr.indexOf("{")));
         return resp;
     }
 
     /**
      * 10.web同步刷新
      *
-     * @param args sid: MqHSJVdEym yvsiP skey: @crypt_253d2949_b195b14efa911d623d9eae272cebd068 lang: zh_CN pass_ticket:
+     * @param loginPagePO sid: MqHSJVdEym yvsiP skey: @crypt_253d2949_b195b14efa911d623d9eae272cebd068 lang: zh_CN pass_ticket:
      * W6hDdkay6sqO8qdGja5%2F8xPzGEJuC4lvSwCQ1z1%2BbuigRfdinyjQJxfbGInoAI4c
      *
      * <b>head:</b><br/>
      * BaseRequest: {Uin: 3162028971, Sid: "MqHSJVdEym+yvsiP", Skey: "@crypt_253d2949_b195b14efa911d623d9eae272cebd068",…}
      * SyncKey: {Count: 4, List: [{Key: 1, Val: 661091461}, {Key: 2, Val: 661091587}, {Key: 3, Val: 661091588},…]} rr:
      * 1786951690
-     * @return {BaseResponse: {Ret: 0, ErrMsg: ""}, AddMsgCount: 0, AddMsgList: [], ModContactCount: 0,…} AddMsgCount: 0
-     * AddMsgList: [] BaseResponse: {Ret: 0, ErrMsg: ""} ContinueFlag: 0 DelContactCount: 0 DelContactList: []
+     * @return {BaseResponse: {Ret: 0, ErrMsg: ""}, AddMsgCount: 0, AddMsgListPO: [], ModContactCount: 0,…} AddMsgCount: 0
+     * AddMsgListPO: [] BaseResponse: {Ret: 0, ErrMsg: ""} ContinueFlag: 0 DelContactCount: 0 DelContactList: []
      * ModChatRoomMemberCount: 0 ModChatRoomMemberList: [] ModContactCount: 0 ModContactList: [] Profile: {BitFlag: 0,
      * UserName: {Buff: ""}, NickName: {Buff: ""}, BindUin: 0, BindEmail: {Buff: ""},…} SKey: "" SyncCheckKey: {Count:
      * 6, List: [{Key: 1, Val: 661091461}, {Key: 2, Val: 661091589}, {Key: 3, Val: 661091588},…]} SyncKey: {Count: 6,
      * List: [{Key: 1, Val: 661091461}, {Key: 2, Val: 661091589}, {Key: 3, Val: 661091588},…]}
      */
-    public static JSONObject webWxSync(Map<String, Object> args) throws Exception {
+    public static WebWxSyncPO webWxSync(LoginPagePO loginPagePO, SyncKeyPO syncKeyPO) throws Exception {
         Map<String, Object> query = new HashMap<>();
-        query.put("sid", args.get("wxsid"));
-        query.put("skey", args.get("skey"));
+        query.put("sid", loginPagePO.getWxSid());
+        query.put("skey", loginPagePO.getSKey());
         query.put("lang", Config.wechat_lang);
-        query.put("pass_ticket", args.get("pass_ticket"));
+        query.put("pass_ticket", loginPagePO.getPassTicket());
 
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
@@ -488,21 +541,23 @@ public final class WeChatUtil {
         }
         Map<String, Object> map = new HashMap<>();
         map.put("DeviceID", "e" + sb.toString());
-        map.put("Sid", args.get("wxsid"));
-        map.put("Skey", args.get("skey"));
-        map.put("Uin", args.get("wxuin"));
+        map.put("Sid", loginPagePO.getWxSid());
+        map.put("Skey", loginPagePO.getSKey());
+        map.put("Uin", loginPagePO.getWxUin());
         Map<String, Object> base = new HashMap<>();
 
-        Map<String, Object> syncKeyMap = (Map<String, Object>) args.get("SyncKey");
-        int syncCount = Integer.parseInt(syncKeyMap.get("Count").toString());
-        List<Map<String, String>> list = (List<Map<String, String>>) syncKeyMap.get("List");//{Key,Val}
-
         base.put("BaseRequest", map);
-        base.put("Count", syncCount);
-        base.put("List", list);
+        base.put("SyncKey", syncKeyPO);
+        base.put("rr", System.currentTimeMillis());
 
         JSONObject resp = JSONObject.fromObject(HttpsUtil.post(webWxSync, query, base));
-        return resp;
+
+        Map<String, Class> childClass = new HashMap<>();
+        childClass.put("addMsgList", AddMsgListPO.class);
+        childClass.put("list", SyncKeyItemPO.class);
+        WebWxSyncPO webWxSyncPO = (WebWxSyncPO) JsonUtil
+            .toBean(resp, WebWxSyncPO.class, ignoreLowercase, childClass);
+        return webWxSyncPO;
     }
 
     private static String getDeviceId() {
