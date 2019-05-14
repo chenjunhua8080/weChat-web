@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5e62695d-3d75-4c8b-9e1a-acd403ba78d8" name="Default Changelist" comment="将初始化数据初步渲染到页面(大部分字段意义还不明确)；&#10;补全已用到的实体类；&#10;&#10;json转化对象时：&#10;  1.实力类自定义的list，需要在jsonConfig声明&#10;  2.实体类没有，json对象有的属性需要在jsonConfig设置忽略&#10;  3.数据传到页面首字母会自动变小写(未解决)&#10;修改html页面要重启才有效&#10;init接口返回的数据量太大(慢死了)">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/AddMsgListPO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/WebWxSyncPO.java" afterDir="false" />
+    <list default="true" id="5e62695d-3d75-4c8b-9e1a-acd403ba78d8" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/weChat/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/weChat/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/LoginPagePO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/LoginPagePO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/AddMsgListPO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/AddMsgListPO.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/weChat/util/HttpsUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/weChat/util/HttpsUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/weChat/util/WeChatUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/weChat/util/WeChatUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/static/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/index.html" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -32,11 +31,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/util/WeChatUtil.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="232">
-              <caret line="238" column="65" lean-forward="true" selection-start-line="238" selection-start-column="65" selection-end-line="238" selection-end-column="65" />
+            <state relative-caret-position="9006">
+              <caret line="495" column="37" selection-start-line="495" selection-start-column="37" selection-end-line="495" selection-end-column="37" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -47,20 +46,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/controller/UserController.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="288">
-              <caret line="148" column="49" selection-start-line="148" selection-start-column="49" selection-end-line="148" selection-end-column="49" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/SyncKeyPO.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="114">
-              <caret line="6" column="13" selection-start-line="6" selection-start-column="13" selection-end-line="6" selection-end-column="13" />
+            <state relative-caret-position="2736">
+              <caret line="164" selection-start-line="164" selection-end-line="164" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -71,7 +58,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/WebWxSyncPO.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="171">
+            <state relative-caret-position="152">
               <caret line="9" column="41" selection-start-line="9" selection-start-column="31" selection-end-line="9" selection-end-column="41" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -83,7 +70,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/LoginPagePO.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="234">
+            <state relative-caret-position="418">
               <caret line="22" column="24" selection-start-line="22" selection-start-column="19" selection-end-line="22" selection-end-column="24" />
             </state>
           </provider>
@@ -92,8 +79,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/AddMsgListPO.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="494">
-              <caret line="26" column="30" lean-forward="true" selection-start-line="26" selection-start-column="30" selection-end-line="26" selection-end-column="30" />
+            <state relative-caret-position="456">
+              <caret line="24" column="30" selection-start-line="24" selection-start-column="30" selection-end-line="24" selection-end-column="30" />
             </state>
           </provider>
         </entry>
@@ -101,17 +88,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/resources/static/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="247" column="35" lean-forward="true" selection-start-line="247" selection-start-column="35" selection-end-line="247" selection-end-column="35" />
+            <state relative-caret-position="4997">
+              <caret line="263" column="11" selection-start-line="263" selection-start-column="11" selection-end-line="263" selection-end-column="11" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/util/HttpsUtil.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-841">
-              <caret line="190" lean-forward="true" selection-start-line="190" selection-end-line="190" />
+            <state relative-caret-position="356">
+              <caret line="139" column="5" selection-start-line="139" selection-start-column="5" selection-end-line="139" selection-end-column="5" />
             </state>
           </provider>
         </entry>
@@ -140,14 +127,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>logger</find>
-      <find>lom</find>
-      <find>={}</find>
-      <find>response</find>
-      <find>--&gt;</find>
-      <find>map</find>
-      <find>wx2</find>
-      <find>uri</find>
       <find>url</find>
       <find>webwxnewloginpage</find>
       <find>wx.qq.com</find>
@@ -167,9 +146,17 @@
       <find>ssession</find>
       <find>qrCode</find>
       <find>heads</find>
-      <find>headers</find>
       <find>refreshMsg</find>
       <find>cookie</find>
+      <find>base</find>
+      <find>bast</find>
+      <find>HttpsUtil</find>
+      <find>headers</find>
+      <find>DeviceID</find>
+      <find>&quot;DeviceID&quot;</find>
+      <find>body</find>
+      <find>body)</find>
+      <find>300</find>
     </findStrings>
     <replaceStrings>
       <replace>--&gt;</replace>
@@ -225,12 +212,12 @@
         <option value="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/BatchContactPO.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/AddMsgList.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/WebWxSyncPO.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/AddMsgListPO.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/weChat/controller/UserController.java" />
-        <option value="$PROJECT_DIR$/src/main/resources/static/index.html" />
         <option value="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/LoginPagePO.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/weChat/util/HttpsUtil.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/weChat/controller/UserController.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/weChat/util/WeChatUtil.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/AddMsgListPO.java" />
+        <option value="$PROJECT_DIR$/src/main/resources/static/index.html" />
+        <option value="$PROJECT_DIR$/src/main/java/com/weChat/util/HttpsUtil.java" />
       </list>
     </option>
   </component>
@@ -284,6 +271,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -382,7 +370,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
     </panes>
   </component>
@@ -406,15 +393,15 @@
     <property name="settings.editor.selected.configurable" value="JavaScript.Libraries" />
   </component>
   <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources\static" />
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources\static\js" />
+      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.weChat.po.wechat" />
     </key>
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources\static\js" />
-      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources" />
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources\static" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -503,7 +490,10 @@
       <workItem from="1557451767782" duration="135000" />
       <workItem from="1557451963435" duration="599000" />
       <workItem from="1557453936043" duration="15717000" />
-      <workItem from="1557537848953" duration="16232000" />
+      <workItem from="1557537848953" duration="16490000" />
+      <workItem from="1557710695045" duration="11045000" />
+      <workItem from="1557731475453" duration="1213000" />
+      <workItem from="1557796986000" duration="599000" />
     </task>
     <task id="LOCAL-00001" summary="改为idea工程；&#10;启用web页面管理；&#10;完成:获取二维码，更新扫描状态">
       <created>1557227678981</created>
@@ -519,11 +509,18 @@
       <option name="project" value="LOCAL" />
       <updated>1557312474888</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="完成syncCheck">
+      <created>1557570032058</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1557570032058</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="107898000" />
+    <option name="totallyTimeSpent" value="121013000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -535,14 +532,13 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="7" />
     <layout>
       <window_info id="Web" order="0" sideWeight="0.50190115" side_tool="true" weight="0.27730194" />
       <window_info id="Designer" order="1" />
       <window_info id="UI Designer" order="2" />
       <window_info id="Favorites" order="3" sideWeight="0.50190115" side_tool="true" weight="0.27730194" />
-      <window_info content_ui="combo" id="Project" order="4" sideWeight="0.49809885" visible="true" weight="0.3072805" />
+      <window_info content_ui="combo" id="Project" order="4" sideWeight="0.49809885" visible="true" weight="0.31531048" />
       <window_info id="Structure" order="5" sideWeight="0.50190115" side_tool="true" weight="0.27730194" />
       <window_info anchor="bottom" id="MyBatis Sql Log" order="0" />
       <window_info anchor="bottom" id="Messages" order="1" weight="0.32990867" />
@@ -554,9 +550,9 @@
       <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.5010707" side_tool="true" weight="0.39954337" />
       <window_info anchor="bottom" id="Message" order="8" />
       <window_info anchor="bottom" id="Find" order="9" weight="0.32990867" />
-      <window_info anchor="bottom" id="Run" order="10" weight="0.4303653" />
+      <window_info active="true" anchor="bottom" id="Run" order="10" visible="true" weight="0.4303653" />
       <window_info anchor="bottom" id="Java Enterprise" order="11" weight="0.32990867" />
-      <window_info active="true" anchor="bottom" id="Debug" order="12" sideWeight="0.49892932" visible="true" weight="0.39954337" />
+      <window_info anchor="bottom" id="Debug" order="12" sideWeight="0.49892932" weight="0.39954337" />
       <window_info anchor="bottom" id="Cvs" order="13" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="14" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="15" weight="0.32990867" />
@@ -579,7 +575,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="改为idea工程；&#10;启用web页面管理；&#10;完成:获取二维码，更新扫描状态" />
     <MESSAGE value="方法间入参出参，改用实体类&#10;完成请求loginPage,init" />
-    <option name="LAST_COMMIT_MESSAGE" value="方法间入参出参，改用实体类&#10;完成请求loginPage,init" />
+    <MESSAGE value="完成syncCheck" />
+    <option name="LAST_COMMIT_MESSAGE" value="完成syncCheck" />
   </component>
   <component name="antWorkspaceConfiguration">
     <option name="IS_AUTOSCROLL_TO_SOURCE" value="false" />
@@ -783,28 +780,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pom.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="95">
-          <caret line="5" column="10" selection-start-line="5" selection-start-column="10" selection-end-line="5" selection-end-column="10" />
-        </state>
-      </provider>
-      <provider editor-type-id="MavenHelperPluginDependencyAnalyzer" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/InitPO.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="589">
           <caret line="32" column="33" selection-start-line="32" selection-start-column="33" selection-end-line="32" selection-end-column="33" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/ContactListPO.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="10" column="22" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -818,20 +797,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/AddMsgListPO.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="494">
-          <caret line="26" column="30" lean-forward="true" selection-start-line="26" selection-start-column="30" selection-end-line="26" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/static/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="247" column="35" lean-forward="true" selection-start-line="247" selection-start-column="35" selection-end-line="247" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/util/XmlUtil.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="155">
@@ -842,27 +807,45 @@
         </state>
       </provider>
     </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_201/src.zip!/java/lang/String.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="155">
+          <caret line="1966" column="18" selection-start-line="1966" selection-start-column="18" selection-end-line="1966" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pom.xml">
+      <provider editor-type-id="MavenHelperPluginDependencyAnalyzer" />
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="95">
+          <caret line="5" column="10" selection-start-line="5" selection-start-column="10" selection-end-line="5" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/SyncKeyPO.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="114">
-          <caret line="6" column="13" selection-start-line="6" selection-start-column="13" selection-end-line="6" selection-end-column="13" />
+        <state relative-caret-position="171">
+          <caret line="9" column="30" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="30" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/util/HttpsUtil.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/util/WeChatUtil.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-841">
-          <caret line="190" lean-forward="true" selection-start-line="190" selection-end-line="190" />
+        <state relative-caret-position="9006">
+          <caret line="495" column="37" selection-start-line="495" selection-start-column="37" selection-end-line="495" selection-end-column="37" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/controller/UserController.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="148" column="49" selection-start-line="148" selection-start-column="49" selection-end-line="148" selection-end-column="49" />
+        <state relative-caret-position="2736">
+          <caret line="164" selection-start-line="164" selection-end-line="164" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -871,7 +854,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/WebWxSyncPO.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
+        <state relative-caret-position="152">
           <caret line="9" column="41" selection-start-line="9" selection-start-column="31" selection-end-line="9" selection-end-column="41" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -881,25 +864,39 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/LoginPagePO.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="234">
+        <state relative-caret-position="418">
           <caret line="22" column="24" selection-start-line="22" selection-start-column="19" selection-end-line="22" selection-end-column="24" />
         </state>
       </provider>
     </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_201/src.zip!/java/lang/String.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/AddMsgListPO.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="155">
-          <caret line="1966" column="18" selection-start-line="1966" selection-start-column="18" selection-end-line="1966" selection-end-column="18" />
+        <state relative-caret-position="456">
+          <caret line="24" column="30" selection-start-line="24" selection-start-column="30" selection-end-line="24" selection-end-column="30" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/util/WeChatUtil.java">
+    <entry file="file://$PROJECT_DIR$/src/main/resources/static/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="232">
-          <caret line="238" column="65" lean-forward="true" selection-start-line="238" selection-start-column="65" selection-end-line="238" selection-end-column="65" />
+        <state relative-caret-position="4997">
+          <caret line="263" column="11" selection-start-line="263" selection-start-column="11" selection-end-line="263" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/po/wechat/ContactListPO.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="171">
+          <caret line="10" column="22" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/weChat/util/HttpsUtil.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="356">
+          <caret line="139" column="5" selection-start-line="139" selection-start-column="5" selection-end-line="139" selection-end-column="5" />
         </state>
       </provider>
     </entry>

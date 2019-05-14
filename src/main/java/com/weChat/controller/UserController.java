@@ -156,7 +156,9 @@ public class UserController {
             //移除信息
             request.getSession().removeAttribute("loginPage");
         } else {
+            log.info("请求更新消息");
             webWxSyncPO = WeChatUtil.webWxSync(loginPage, syncKeyPO);
+            log.info("请求更新消息 end");
         }
         return webWxSyncPO;
     }

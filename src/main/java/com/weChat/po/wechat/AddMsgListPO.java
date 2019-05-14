@@ -24,7 +24,7 @@ public class AddMsgListPO {
     private long newMsgId;
     private String oriContent;
     private int playLength;
-    private Object recommendInfo;//object
+    private String recommendInfo;//object
     private int status;
     private int statusNotifyCode;
     private String statusNotifyUserName;

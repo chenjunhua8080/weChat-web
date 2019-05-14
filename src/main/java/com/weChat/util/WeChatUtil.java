@@ -107,13 +107,13 @@ public final class WeChatUtil {
      * @return window.QRLogin.code = 200; window.QRLogin.uuid = "ActjS9HwSw==";
      */
     public static String jsLogin() throws Exception {
-        Map<String, Object> map = new HashMap<>();
-        map.put("appid", "wx782c26e4c19acffb");
-        map.put("fun", "new");
-        map.put("lang", Config.wechat_lang);
-        map.put("redirect_uri", "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxnewloginpage");
-        map.put("_", System.currentTimeMillis());
-        JSONObject resp = JSONObject.fromObject("{" + HttpsUtil.get(jsLogin, map) + "}");
+        Map<String, Object> query = new HashMap<>();
+        query.put("appid", "wx782c26e4c19acffb");
+        query.put("fun", "new");
+        query.put("lang", Config.wechat_lang);
+        query.put("redirect_uri", "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxnewloginpage");
+        query.put("_", System.currentTimeMillis());
+        JSONObject resp = JSONObject.fromObject("{" + HttpsUtil.get(jsLogin, query) + "}");
         return resp.getString("window.QRLogin.uuid");
     }
 
@@ -140,12 +140,12 @@ public final class WeChatUtil {
      * window.code=200; window.redirect_uri="https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxnewloginpage?ticket=A3ytELDXEHJ9WmEzyBjawS_x@qrticket_0&uuid=AeioKQv69A==&lang=zh_CN&scan=1557286172";
      */
     public static Map<String, Object> waitForLogin(int tip, String uuid) throws Exception {
-        Map<String, Object> map = new HashMap<>();
-        map.put("loginicon", true);
-        map.put("uuid", uuid);
-        map.put("tip", tip);
-        map.put("_", System.currentTimeMillis());
-        JSONObject resp = JSONObject.fromObject("{" + HttpsUtil.get(waitForLogin, map) + "}");
+        Map<String, Object> query = new HashMap<>();
+        query.put("loginicon", true);
+        query.put("uuid", uuid);
+        query.put("tip", tip);
+        query.put("_", System.currentTimeMillis());
+        JSONObject resp = JSONObject.fromObject("{" + HttpsUtil.get(waitForLogin, query) + "}");
         int respCode = resp.getInt("window.code");
         Map<String, Object> result = new HashMap<>();
         result.put("code", resp.getInt("window.code"));
@@ -210,6 +210,9 @@ public final class WeChatUtil {
 
         JSONObject respObject = HttpsUtil.getReturnHeadAndBody(loginPage, query);
         Map<String, Object> map = XmlUtil.parseXml(respObject.getString("body"), "utf-8");
+        if (Integer.parseInt(map.get("ret").toString())!=0){
+            log.info("登录失败：{}",map.get("message"));
+        }
         //主体字段
         LoginPagePO loginPagePO = new LoginPagePO();
         loginPagePO.setRet(Integer.parseInt(map.get("ret").toString()));
@@ -266,18 +269,18 @@ public final class WeChatUtil {
      * "@dbc955536b0b80b8e9154560f9cc8871fcdf150c087335212ef9219b7cd28764",…}
      */
     public static InitPO init(String sid, String sKey, String uin, String passTicket) throws Exception {
-        Map<String, Object> map = new HashMap<>();
-        map.put("DeviceID", getDeviceId());
-        map.put("Sid", sid);
-        map.put("Skey", sKey);
-        map.put("Uin", uin);
-        Map<String, Object> base = new HashMap<>();
-        base.put("BaseRequest", map);
+        Map<String, Object> baseRequest = new HashMap<>();
+        baseRequest.put("DeviceID", getDeviceId());
+        baseRequest.put("Sid", sid);
+        baseRequest.put("Skey", sKey);
+        baseRequest.put("Uin", uin);
+        Map<String, Object> body = new HashMap<>();
+        body.put("BaseRequest", baseRequest);
         Map<String, Object> query = new HashMap<>();
         query.put("r", System.currentTimeMillis());
         query.put("lang", Config.wechat_lang);
         query.put("pass_ticket", passTicket);
-        JSONObject resp = JSONObject.fromObject(HttpsUtil.post(init, query, base));
+        JSONObject resp = JSONObject.fromObject(HttpsUtil.post(init, query, body));
 
         Map<String, Class> childClass = new HashMap<>();
         childClass.put("contactList", ContactPO.class);
@@ -301,18 +304,13 @@ public final class WeChatUtil {
      * @return BaseResponse: {Ret: 0, ErrMsg: ""} MsgID: "7992382417837797668"
      */
     public static JSONObject statusNotify(Map<String, Object> args) throws Exception {
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        for (int i = 0; i < 15; i++) {
-            sb.append(random.nextInt(10));
-        }
-        Map<String, Object> map = new HashMap<>();
-        map.put("DeviceID", "e" + sb.toString());
-        map.put("Sid", args.get("wxsid"));
-        map.put("Skey", args.get("skey"));
-        map.put("Uin", args.get("wxuin"));
-        Map<String, Object> base = new HashMap<>();
-        base.put("BaseRequest", map);
+        Map<String, Object> baseRequest = new HashMap<>();
+        baseRequest.put("DeviceID", getDeviceId());
+        baseRequest.put("Sid", args.get("wxsid"));
+        baseRequest.put("Skey", args.get("skey"));
+        baseRequest.put("Uin", args.get("wxuin"));
+        Map<String, Object> body = new HashMap<>();
+        body.put("BaseRequest", baseRequest);
 
         Map<String, Object> query = new HashMap<>();
         query.put("ClientMsgId", System.currentTimeMillis());
@@ -320,7 +318,7 @@ public final class WeChatUtil {
         query.put("FromUserName", args.get("userName"));
         query.put("ToUserName", args.get("userName"));
 
-        JSONObject resp = JSONObject.fromObject(HttpsUtil.post(getContact, query, base));
+        JSONObject resp = JSONObject.fromObject(HttpsUtil.post(getContact, query, body));
         return resp;
     }
 
@@ -370,27 +368,22 @@ public final class WeChatUtil {
      * Count: 17
      */
     public static BatchContactPO batchGetContact(Map<String, Object> args) throws Exception {
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        for (int i = 0; i < 15; i++) {
-            sb.append(random.nextInt(10));
-        }
-        Map<String, Object> map = new HashMap<>();
-        map.put("DeviceID", "e" + sb.toString());
-        map.put("Sid", args.get("wxsid"));
-        map.put("Skey", args.get("skey"));
-        map.put("Uin", args.get("wxuin"));
-        Map<String, Object> base = new HashMap<>();
-        base.put("BaseRequest", map);
-        base.put("Count", args.get("count"));
-        base.put("List", args.get("list"));
+        Map<String, Object> baseRequest = new HashMap<>();
+        baseRequest.put("DeviceID", getDeviceId());
+        baseRequest.put("Sid", args.get("wxsid"));
+        baseRequest.put("Skey", args.get("skey"));
+        baseRequest.put("Uin", args.get("wxuin"));
+        Map<String, Object> body = new HashMap<>();
+        body.put("BaseRequest", baseRequest);
+        body.put("Count", args.get("count"));
+        body.put("List", args.get("list"));
 
         Map<String, Object> query = new HashMap<>();
         query.put("type", "ex");
         query.put("r", System.currentTimeMillis());
         query.put("lang", Config.wechat_lang);
         query.put("pass_ticket", args.get("pass_ticket"));
-        JSONObject resp = JSONObject.fromObject(HttpsUtil.post(batchGetContact, query, base));
+        JSONObject resp = JSONObject.fromObject(HttpsUtil.post(batchGetContact, query, body));
 
         Map<String, Class> childClass = new HashMap<>();
         childClass.put("contactList", ContactPO.class);
@@ -482,15 +475,10 @@ public final class WeChatUtil {
         query.put("skey", loginPagePO.getSKey());
         query.put("sid", loginPagePO.getWxSid());
         query.put("uin", loginPagePO.getWxUin());
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        for (int i = 0; i < 15; i++) {
-            sb.append(random.nextInt(10));
-        }
-        query.put("deviceid", "e" + sb.toString());
+        query.put("deviceid", getDeviceId());
 
         List<SyncKeyItemPO> syncList = syncKeyPO.getList();//{Key,Val}
-        sb.setLength(0);
+        StringBuilder sb = new StringBuilder();
         for (SyncKeyItemPO item : syncList) {
             sb.append(item.getKey());
             sb.append("_");
@@ -534,23 +522,32 @@ public final class WeChatUtil {
         query.put("lang", Config.wechat_lang);
         query.put("pass_ticket", loginPagePO.getPassTicket());
 
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        for (int i = 0; i < 15; i++) {
-            sb.append(random.nextInt(10));
+        Map<String, Object> baseRequest = new HashMap<>();
+        baseRequest.put("DeviceID", getDeviceId());
+        baseRequest.put("Sid", loginPagePO.getWxSid());
+        baseRequest.put("Skey", loginPagePO.getSKey());
+        baseRequest.put("Uin", loginPagePO.getWxUin());
+        Map<String, Object> body = new HashMap<>();
+
+        body.put("BaseRequest", baseRequest);
+        body.put("rr", System.currentTimeMillis());
+
+        Map<String, Object> syncKeyMap = new HashMap<>();
+        syncKeyMap.put("Count", syncKeyPO.getCount());
+        //不转会有类名SyncKeyItemPO, {SyncKeyItemPO(key=3, val=661093531)}
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (SyncKeyItemPO item : syncKeyPO.getList()) {
+            Map<String, Object> syncKeyItemMap = new HashMap<>();
+            syncKeyItemMap.put("Key", item.getKey());
+            syncKeyItemMap.put("Val", item.getVal());
+            list.add(syncKeyItemMap);
         }
-        Map<String, Object> map = new HashMap<>();
-        map.put("DeviceID", "e" + sb.toString());
-        map.put("Sid", loginPagePO.getWxSid());
-        map.put("Skey", loginPagePO.getSKey());
-        map.put("Uin", loginPagePO.getWxUin());
-        Map<String, Object> base = new HashMap<>();
+        syncKeyMap.put("List", list);
+        body.put("SyncKey", syncKeyMap);
 
-        base.put("BaseRequest", map);
-        base.put("SyncKey", syncKeyPO);
-        base.put("rr", System.currentTimeMillis());
+        System.out.println(JSONObject.fromObject(body).toString());
 
-        JSONObject resp = JSONObject.fromObject(HttpsUtil.post(webWxSync, query, base));
+        JSONObject resp = JSONObject.fromObject(HttpsUtil.post(webWxSync, query, body));
 
         Map<String, Class> childClass = new HashMap<>();
         childClass.put("addMsgList", AddMsgListPO.class);
@@ -570,21 +567,7 @@ public final class WeChatUtil {
     }
 
     public static void main(String[] args) throws Exception {
-        String uuid = jsLogin();
-        getQrCode(uuid);
-        System.err.println(uuid);
-        int tip = 0;
-        Map<String, Object> map = waitForLogin(tip, uuid);
-        System.err.println(map);
-        while (map.get("code") == null || Integer.valueOf(map.get("code").toString()) != 200) {
-            map = waitForLogin(tip, uuid);
-            System.err.println(map);
-        }
-//        map = loginPage(map);
-        System.out.println(map);
-//        System.out.println(init(map));
-//        System.out.println(getContact(map));
-        System.out.println(batchGetContact(map));
+
     }
 
 }

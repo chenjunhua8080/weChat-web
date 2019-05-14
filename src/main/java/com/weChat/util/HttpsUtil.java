@@ -108,6 +108,7 @@ public class HttpsUtil {
     public static String get(String url, Map<String, Object> query, Map<String, String> headers) throws Exception {
         log.info("url     --> {}", url);
         log.info("args[]  --> {}", query == null ? null : query.toString());
+        log.info("headers  --> {}", headers == null ? null : headers.toString());
         log.info("method  --> {}", "GET");
 
         HttpClient client = new HttpClient();
@@ -133,15 +134,9 @@ public class HttpsUtil {
         System.setProperty("jsse.enableSNIExtension", "false");
 
         client.executeMethod(get);
-        BufferedReader br = new BufferedReader(new InputStreamReader(get.getResponseBodyAsStream(), "utf-8"));
-        String line;
-        StringBuilder sb = new StringBuilder();
-        while ((line = br.readLine()) != null) {
-            sb.append(line);
-        }
-        br.close();
-        log.info("response  --> {}", sb);
-        return sb.toString();
+        String responseBodyAsString = get.getResponseBodyAsString();
+        log.info("response  --> {}", responseBodyAsString);
+        return responseBodyAsString;
     }
 
     /**
@@ -178,6 +173,7 @@ public class HttpsUtil {
         Header[] responseHeaders = get.getResponseHeaders();
         result.put("headers", JSONArray.fromObject(responseHeaders));
 
+        log.info("response  --> {}", result.toString());
         return result;
     }
 
@@ -211,10 +207,10 @@ public class HttpsUtil {
     /**
      * 发送post请求
      */
-    public static String post(String url, Map<String, Object> query, Map<String, Object> map) throws Exception {
+    public static String post(String url, Map<String, Object> query, Map<String, Object> body) throws Exception {
         log.info("url     --> {}", url);
         log.info("query   --> {}", query == null ? null : query.toString());
-        log.info("args[]  --> {}", map == null ? null : map.toString());
+        log.info("body  --> {}", body == null ? null : body.toString());
         log.info("method  --> {}", "POST");
 
         HttpClient client = new HttpClient();
@@ -234,8 +230,8 @@ public class HttpsUtil {
             post.setQueryString(params);
         }
 
-        if (map != null) {
-            RequestEntity requestEntity = new StringRequestEntity(JSONObject.fromObject(map).toString());
+        if (body != null) {
+            RequestEntity requestEntity = new StringRequestEntity(JSONObject.fromObject(body).toString());
             post.setRequestEntity(requestEntity);
         }
         client.executeMethod(post);

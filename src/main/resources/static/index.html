@@ -249,16 +249,19 @@
         }
         //有新消息
         if (result.addMsgCount > 0) {
-          let html = $('#contact').html();
+          let html = $('#session').html();
           let addMsgList = result.addMsgList;
           for (let item in addMsgList) {
-            html += "(" + item.content.split("<br/>")[1] + ")";
-            html += "(" + item.msgType + ")";
+            html += "(" + addMsgList[item].content + ")";
+            html += "(" + addMsgList[item].msgType + ")";
           }
+          $('#session').html(html);
         }
 
         //不断刷新
-        refreshMsg(result.syncKey);
+        setTimeout(function () {
+          refreshMsg(result.syncKey);
+        },5000);
       },
       error: function (e) {
         console.log(e);

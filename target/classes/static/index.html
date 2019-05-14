@@ -136,12 +136,14 @@
       success: function (result) {
         console.log(result);
         let baseResponse = result.baseResponse;
-        if (baseResponse.ret!=0){
+        if (baseResponse.ret != 0) {
           //请求数据错误，重新登录
           alert(JSON.stringify(baseResponse));
           window.location.reload();
         }
         initData(result);
+        //刷新消息
+        refreshMsg(result.syncKey);
       },
       error: function (e) {
         console.log(e);
@@ -159,7 +161,7 @@
       success: function (result) {
         console.log(result);
         let baseResponse = result.baseResponse;
-        if (baseResponse.ret!=0){
+        if (baseResponse.ret != 0) {
           //请求数据错误，重新登录
           alert(JSON.stringify(baseResponse));
           window.location.reload();
@@ -214,7 +216,7 @@
    */
   function initContactData(result) {
     //设置好友列表
-    let contactHtml = "<h2>好友列表("+result.memberCount+")</h2>";
+    let contactHtml = "<h2>好友列表(" + result.memberCount + ")</h2>";
     let contactList = result.memberList;
     let contact;
     for (let i = 0; i < contactList.length; i++) {
@@ -227,6 +229,46 @@
     }
     $('#contact').html(contactHtml);
   }
+
+  /**
+   * 刷新消息
+   */
+  function refreshMsg(syncList) {
+    $.ajax({
+      url: "/refresh",
+      type: "POST",
+      data: JSON.stringify(syncList),
+      contentType:"application/json;charset-UTF-8",
+      success: function (result) {
+        console.log(result);
+        let baseResponse = result.baseResponse;
+        if (baseResponse.ret != 0) {
+          //请求数据错误，重新登录
+          alert(JSON.stringify(baseResponse));
+          window.location.reload();
+        }
+        //有新消息
+        if (result.addMsgCount > 0) {
+          let html = $('#session').html();
+          let addMsgList = result.addMsgList;
+          for (let item in addMsgList) {
+            html += "(" + addMsgList[item].content + ")";
+            html += "(" + addMsgList[item].msgType + ")";
+          }
+          $('#session').html(html);
+        }
+
+        //不断刷新
+        setTimeout(function () {
+          refreshMsg(result.syncKey);
+        },5000);
+      },
+      error: function (e) {
+        console.log(e);
+      }
+    });
+  }
+
 </script>
 <body>
 <img id="qrCode" src="" alt="二维码">
