@@ -7,6 +7,7 @@ import com.weChat.po.wechat.LoginPagePO;
 import com.weChat.po.wechat.SyncKeyPO;
 import com.weChat.po.wechat.WebWxSyncPO;
 import com.weChat.util.WeChatUtil;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.Cookie;
@@ -71,6 +72,9 @@ public class UserController {
                 HttpSession session = request.getSession();
                 session.setAttribute("loginPage", loginPage);
                 //设置到cookie
+                Cookie cookie7 = new Cookie("webwx_auth_ticket", loginPage.getWebwx_auth_ticket());
+                Cookie cookie8 = new Cookie("webwx_data_ticket", loginPage.getWebwx_data_ticket());
+                Cookie cookie9 = new Cookie("webwxuvid", loginPage.getWebwxuvid());
                 Cookie cookie1 = new Cookie("sKey", loginPage.getSKey());
                 Cookie cookie2 = new Cookie("wxSid", loginPage.getWxSid());
                 Cookie cookie3 = new Cookie("wxUin", loginPage.getWxUin());
@@ -79,6 +83,9 @@ public class UserController {
                 response.addCookie(cookie2);
                 response.addCookie(cookie3);
                 response.addCookie(cookie4);
+                response.addCookie(cookie7);
+                response.addCookie(cookie8);
+                response.addCookie(cookie9);
             }
         }
         return loginStatus;
@@ -161,6 +168,15 @@ public class UserController {
             log.info("请求更新消息 end");
         }
         return webWxSyncPO;
+    }
+
+    public static void main(String[] args) throws UnsupportedEncodingException {
+        String a = "å¾®ä¿¡å¢é";
+        byte[] bytes = a.getBytes("ISO8859-1");
+        String b = new String(bytes, "utf-8");
+        System.out.println(a);
+        System.out.println(bytes);
+        System.out.println(b);
     }
 
 }

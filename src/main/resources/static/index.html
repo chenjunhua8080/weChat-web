@@ -40,10 +40,17 @@
       cursor: pointer;
       background-color: cornflowerblue;
     }
+
+    .headImg{
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+    }
   </style>
 </head>
 <script src="jquery-3.3.1.min.js"></script>
 <script>
+  const wxUrl="https://wx2.qq.com";
   let uuid;
 
   /**
@@ -202,7 +209,10 @@
     let session;
     for (let i = 0; i < sessionList.length; i++) {
       session = sessionList[i];
-      sessionHtml += "<p>" + session.nickName;
+      sessionHtml += "<p>";
+      let url=wxUrl+session.headImgUrl;
+      sessionHtml += "<img class='headImg' src='"+url+"' />";
+      sessionHtml += session.nickName;
       if (session.remarkName != null && session.remarkName != "") {
         sessionHtml += "(" + session.remarkName + ")";
       }

@@ -22,6 +22,7 @@ import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.ArrayUtils;
 
 /**
  * web微信用到的API<br/>
@@ -98,7 +99,14 @@ public final class WeChatUtil {
     private final static String sendMsg = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg?pass_ticket=PASS_TICKET";
 
 
+    /**
+     * 微信字段转JsonBean时，处理的特殊大小写字段
+     */
     public static String[] ignoreLowercase = {"MP", "PY"};
+    /**
+     * 联系人为订阅号公众号等特殊标识
+     */
+    public static String[] mpKeyWord = {"gh_", "mcd"};
 
     /**
      * 1. 获取UUID（参考方法 getUUID） param : appid: wx782c26e4c19acffb redirect_uri: https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxnewloginpage
@@ -406,26 +414,22 @@ public final class WeChatUtil {
         Iterator<ContactPO> iterator = contactList.iterator();
         while (iterator.hasNext()) {
             ContactPO contactPO = iterator.next();
-            if ("gh_".equals(contactPO.getKeyWord())) {
+            if (ArrayUtils.contains(mpKeyWord,contactPO.getKeyWord())) {
                 iterator.remove();
+                log.info("remove gh_ {} in initPO.getContactList()", contactPO.getNickName());
             }
         }
         //将chatSet中的联系人添加到contactList
         String[] split = chatSet.split(",");
         List<Map<String, String>> list = new ArrayList<>();
-        boolean needAdd = false;
+        boolean needAdd;
         for (String item : split) {
             if (item.contains("@")) {
+                needAdd=true;
                 for (ContactPO contactPO : contactList) {
                     if (item.equals(contactPO.getUserName())) {
-                        if ("gh_".equals(contactPO.getKeyWord())) {
-                            needAdd = false;
-                        } else {
-                            needAdd = true;
-                        }
-                        break;
-                    } else {
-                        needAdd = true;
+                        needAdd=false;
+                       break;
                     }
                 }
                 if (needAdd) {
@@ -446,7 +450,17 @@ public final class WeChatUtil {
         BatchContactPO batchContactPO = batchGetContact(param);
 
         if (batchContactPO.getBaseResponse().getRet() == 0) {
-            contactList.addAll(batchContactPO.getContactList());
+            List<ContactPO> batchContactList = batchContactPO.getContactList();
+            //除去contactList本身包含的公众号
+            Iterator<ContactPO> iterator2 = batchContactList.iterator();
+            while (iterator2.hasNext()) {
+                ContactPO contactPO = iterator2.next();
+                if (ArrayUtils.contains(mpKeyWord,contactPO.getKeyWord())) {
+                    iterator2.remove();
+                    log.info("remove gh_ {} in batchContactList", contactPO.getNickName());
+                }
+            }
+            contactList.addAll(batchContactList);
             initPO.setCount(contactList.size());
         } else {
             log.info("batchGetContact错误：{}", batchContactPO);

@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -125,6 +126,8 @@ public class HttpsUtil {
             get.setQueryString(params);
         }
 
+        //application/x-www-form-urlencoded;
+        get.addRequestHeader("Content-Type", "charset=UTF-8");
         if (!headers.isEmpty()) {
             for (String item : headers.keySet()) {
                 get.addRequestHeader(item, headers.get(item));
@@ -135,6 +138,12 @@ public class HttpsUtil {
 
         client.executeMethod(get);
         String responseBodyAsString = get.getResponseBodyAsString();
+        String responseCharSet = get.getResponseCharSet();
+        if (responseCharSet.contains("8859")){
+            log.info("responseCharSet  --> {} --> {}", responseCharSet,StandardCharsets.UTF_8);
+            byte[] bytes = responseBodyAsString.getBytes(StandardCharsets.ISO_8859_1);
+            responseBodyAsString = new String(bytes, StandardCharsets.UTF_8);
+        }
         log.info("response  --> {}", responseBodyAsString);
         return responseBodyAsString;
     }

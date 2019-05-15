@@ -2,12 +2,11 @@ spring:
   #数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/wechat_web
+    url: jdbc:mysql://127.0.0.1:3306/wechat_web?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2b8
     username: root
     password: root
   #json数据格式
   jackson:
-    c
 #mybatis配置
 mybatis-plus:
   #映射文件位置
@@ -30,4 +29,4 @@ logging:
     org.apache.http.headers: error
 #端口
 server:
-  port: 8084
+  port: 8054
