@@ -422,22 +422,22 @@ public final class WeChatUtil {
         //将chatSet中的联系人添加到contactList
         String[] split = chatSet.split(",");
         List<Map<String, String>> list = new ArrayList<>();
-        boolean needAdd;
         for (String item : split) {
             if (item.contains("@")) {
-                needAdd=true;
-                for (ContactPO contactPO : contactList) {
+                iterator = contactList.iterator();
+                while (iterator.hasNext()) {
+                    ContactPO contactPO = iterator.next();
                     if (item.equals(contactPO.getUserName())) {
-                        needAdd=false;
-                       break;
+                        //群聊的话，群成员在init没有信息，所以移除init里，在batchGetContact重新获取
+                        iterator.remove();
+//                        needAdd=false;
+//                        break;
                     }
                 }
-                if (needAdd) {
-                    Map<String, String> map = new HashMap<>();
-                    map.put("UserName", item);
-                    map.put("EncryChatRoomId", "");
-                    list.add(map);
-                }
+                Map<String, String> map = new HashMap<>();
+                map.put("UserName", item);
+                map.put("EncryChatRoomId", "");
+                list.add(map);
             }
         }
         Map<String, Object> param = new HashMap<>();

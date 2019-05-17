@@ -34,10 +34,12 @@ public class HttpsUtil {
     /**
      * 发送get请求，返回响应流
      */
-    public static InputStream get(String url, Map<String, Object> query, boolean resultStream) throws Exception {
-        log.info("url     --> {}", url);
-        log.info("args[]  --> {}", query == null ? null : query.toString());
-        log.info("method  --> {}", "GET");
+    public static InputStream get(String url, Map<String, Object> query, Map<String, String> headers,
+        boolean resultStream) throws Exception {
+        log.info("url         --> {}", url);
+        log.info("args[]      --> {}", query == null ? null : query.toString());
+        log.info("headers[]   --> {}", headers == null ? null : headers.toString());
+        log.info("method      --> {}", "GET");
         log.info("resultStream  --> {}", resultStream);
 
         HttpClient client = new HttpClient();
@@ -53,11 +55,18 @@ public class HttpsUtil {
             params = params.substring(0, params.lastIndexOf('&'));
             get.setQueryString(params);
         }
+        if (headers != null) {
+            for (String item : headers.keySet()) {
+                get.addRequestHeader(item, headers.get(item));
+            }
+        }
 
         System.setProperty("jsse.enableSNIExtension", "false");
 
         client.executeMethod(get);
-        log.info("response  --> {}", get.getResponseBodyAsString());
+        log.info("responseContentLength  --> {}, responseCharSet  --> {} ",
+            get.getResponseContentLength(),
+            get.getResponseCharSet());
         return get.getResponseBodyAsStream();
     }
 
@@ -139,12 +148,17 @@ public class HttpsUtil {
         client.executeMethod(get);
         String responseBodyAsString = get.getResponseBodyAsString();
         String responseCharSet = get.getResponseCharSet();
-        if (responseCharSet.contains("8859")){
-            log.info("responseCharSet  --> {} --> {}", responseCharSet,StandardCharsets.UTF_8);
+        if (responseCharSet.contains("8859")) {
+            log.info("responseCharSet  --> {} --> {}", responseCharSet, StandardCharsets.UTF_8);
             byte[] bytes = responseBodyAsString.getBytes(StandardCharsets.ISO_8859_1);
             responseBodyAsString = new String(bytes, StandardCharsets.UTF_8);
         }
-        log.info("response  --> {}", responseBodyAsString);
+        long responseContentLength = get.getResponseContentLength();
+        if (responseContentLength > 1000) {
+            log.info("responseContentLength  --> {}", responseContentLength);
+        } else {
+            log.info("response  --> {}", responseBodyAsString);
+        }
         return responseBodyAsString;
     }
 

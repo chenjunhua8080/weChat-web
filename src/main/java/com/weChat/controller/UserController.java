@@ -6,8 +6,13 @@ import com.weChat.po.wechat.InitPO;
 import com.weChat.po.wechat.LoginPagePO;
 import com.weChat.po.wechat.SyncKeyPO;
 import com.weChat.po.wechat.WebWxSyncPO;
+import com.weChat.util.HttpsUtil;
 import com.weChat.util.WeChatUtil;
-import java.io.UnsupportedEncodingException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.Cookie;
@@ -170,13 +175,45 @@ public class UserController {
         return webWxSyncPO;
     }
 
-    public static void main(String[] args) throws UnsupportedEncodingException {
-        String a = "å¾®ä¿¡å¢é";
-        byte[] bytes = a.getBytes("ISO8859-1");
-        String b = new String(bytes, "utf-8");
-        System.out.println(a);
-        System.out.println(bytes);
-        System.out.println(b);
+    /**
+     * 请求图片
+     */
+    @GetMapping("/getImg")
+    public void getImg(String prefix, String seq, String username, String skey,
+        @SessionAttribute("loginPage") LoginPagePO loginPagePO, HttpServletResponse response) {
+        if (loginPagePO == null) {
+            return;
+        }
+        String url = "https://wx2.qq.com" + prefix + "?seq=" + seq + "&username=" + username + "&skey=" + skey;
+        Map<String, String> headers = new HashMap<>();
+        String cookie = "wxuin=" + loginPagePO.getWxUin();
+        cookie += ";wxsid=" + loginPagePO.getWxSid();
+        cookie += ";webwx_data_ticket=" + loginPagePO.getWebwx_data_ticket();
+        headers.put("cookie", cookie);
+
+        try (
+            InputStream inputStream = HttpsUtil.get(url, null, headers, true);
+            //微信返回的是编码ISO-8859-1，InputStreamReader()默认utf-8,坑
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "ISO-8859-1"))
+        ) {
+            //这个方法可以在读写操作前先得知数据流里有多少个字节可以读取需要注意的是，如果这个方法用在从本地文件读取数据时，一般不会遇到问题，但如果是用于网络操作，就经常会遇到一些麻烦。比如，Socket通讯时，对方明明发来了1000个字节，但是自己的程序调用available()方法却只得到900，或者100，甚至是0，感觉有点莫名其妙，怎么也找不到原因。其实，这是因为网络通讯往往是间断性的，一串字节往往分几批进行发送。本地程序调用available()方法有时得到0，这可能是对方还没有响应，也可能是对方已经响应了，但是数据还没有送达本地。对方发送了1000个字节给你，也许分成3批到达，这你就要调用3次available()方法才能将数据总数全部得到。
+            //int length = inputStream.available()
+            char[] c = new char[1024];
+            int position;
+            PrintWriter writer = response.getWriter();
+            while ((position = bufferedReader.read(c)) != -1) {
+                writer.write(c, 0, position);
+                writer.flush();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //不能加返回？
+        //return;
+    }
+
+    public static void main(String[] args) throws IOException {
+
     }
 
 }

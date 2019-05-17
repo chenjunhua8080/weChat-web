@@ -16,22 +16,9 @@
       box-shadow: #999 0 2px 10px;
     }
 
-    #contact {
-      box-shadow: #999 0 2px 10px;
-      width: 30%;
-    }
-
-    #session {
-      box-shadow: #999 0 2px 10px;
-      width: 30%;
-    }
-
-    #mp {
-      box-shadow: #999 0 2px 10px;
-      width: 30%;
-    }
-
     #contact, #session, #mp {
+      box-shadow: #999 0 2px 10px;
+      width: 30%;
       float: left;
       text-align: center;
     }
@@ -40,11 +27,32 @@
       cursor: pointer;
       background-color: cornflowerblue;
     }
+
+    .headImg {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+    }
+
+    .border {
+      box-shadow: #999 0 2px 10px;
+    }
+
+    .label {
+      display: inline-block;
+      position: absolute;
+    }
+
+    .relative {
+      position: relative;
+    }
   </style>
 </head>
 <script src="jquery-3.3.1.min.js"></script>
 <script>
+  const wxUrl = "https://wx2.qq.com";
   let uuid;
+  let initObject;
 
   /**
    * 开始执行
@@ -178,6 +186,8 @@
    * 初始化数据
    */
   function initData(result) {
+    initObject = result;
+
     //设置标题
     $('#hello').html(result.user.nickName);
 
@@ -187,12 +197,17 @@
     let mp;
     for (let i = 0; i < mpList.length; i++) {
       mp = mpList[i];
-      mpHtml += "<p>" + mp.nickName + "：</p>";
+      mpHtml += "<div class='border'>";
+      mpHtml += "<p>";
+      // mpHtml += getImgTag(mp.headImgUrl);
+      mpHtml += mp.nickName + ":";
+      mpHtml += "</p>";
       let article;
       for (let j = 0; j < mp.mparticleList.length; j++) {
         article = mp.mparticleList[j];
         mpHtml += "<p>" + article.title + "：</p>";
       }
+      mpHtml += "</div>";
     }
     $('#mp').html(mpHtml);
 
@@ -202,11 +217,16 @@
     let session;
     for (let i = 0; i < sessionList.length; i++) {
       session = sessionList[i];
-      sessionHtml += "<p>" + session.nickName;
+      sessionHtml += "<div class='relative'>";
+      sessionHtml += getImgTag(session.headImgUrl);
+      sessionHtml += "<p class='label'>";
+      sessionHtml += session.nickName;
       if (session.remarkName != null && session.remarkName != "") {
         sessionHtml += "(" + session.remarkName + ")";
       }
       sessionHtml += "</p>";
+      sessionHtml += "<p style='display: none' id='" + session.userName + "'>" + session.nickName + "</p>";
+      sessionHtml += "</div>";
     }
     $('#session').html(sessionHtml);
   }
@@ -221,11 +241,16 @@
     let contact;
     for (let i = 0; i < contactList.length; i++) {
       contact = contactList[i];
-      contactHtml += "<p>" + contact.nickName;
+      contactHtml += "<div class='relative'>";
+      contactHtml += getImgTag(contact.headImgUrl);
+      contactHtml += "<p class='label'>";
+      contactHtml += contact.nickName;
       if (contact.remarkName != null && contact.remarkName != "") {
         contactHtml += "(" + contact.remarkName + ")";
       }
       contactHtml += "</p>";
+      contactHtml += "<p style='display: none' id='" + contact.userName + "'>" + contact.nickName + "</p>";
+      contactHtml += "</div>";
     }
     $('#contact').html(contactHtml);
   }
@@ -238,7 +263,7 @@
       url: "/refresh",
       type: "POST",
       data: JSON.stringify(syncList),
-      contentType:"application/json;charset-UTF-8",
+      contentType: "application/json;charset-UTF-8",
       success: function (result) {
         console.log(result);
         let baseResponse = result.baseResponse;
@@ -251,9 +276,93 @@
         if (result.addMsgCount > 0) {
           let html = $('#session').html();
           let addMsgList = result.addMsgList;
+          let msg;
+          let msgType;
+          let content;
+          let fromUser;
+          let contentText;
           for (let item in addMsgList) {
-            html += "(" + addMsgList[item].content + ")";
-            html += "(" + addMsgList[item].msgType + ")";
+            msg = addMsgList[item];
+            msgType = msg.msgType;
+            content = msg.content;
+            html += "<div>"
+            switch (msgType) {
+              case 49:
+                html += "收到推文"
+                break;
+              case 1:
+                if (content == null || content == "") {
+                  continue;
+                } else if (content.indexOf("@") != -1) {
+                  //群组
+                  //fromUser = content.substr(0, content.indexOf(':'));
+                  fromUser = msg.fromUserName;
+                  fromUser = fromUser.split('@').join('\\@');//@转义
+                  let userP = $('#' + fromUser);
+                  if (userP != null) {
+                    fromUser = userP.text();
+                  }
+                  //获取群聊联系人消息
+                  let sendUser = content.substr(0, content.indexOf(':'));
+                  let contactList = initObject.contactList;
+                  for (let i in contactList) {
+                    if ( msg.fromUserName == contactList[i].userName) {
+                      for (let j in contactList[i].memberList) {
+                        if (sendUser == contactList[i].memberList[j].userName) {
+                          sendUser = contactList[i].memberList[j].nickName;
+                          if (contactList[i].memberList[j].displayName != null
+                              && contactList[i].memberList[j].displayName != "") {
+                            sendUser += "(" + contactList[i].memberList[j].displayName + ")";
+                          }
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  fromUser += "--" + sendUser;
+                  contentText = content.substr(content.indexOf(':') + 1, content.length);
+                } else {
+                  //用户
+                  fromUser = msg.fromUserName;
+                  fromUser = fromUser.split('@').join('\\@');//@转义
+                  let userP = $('#' + fromUser);
+                  if (userP != null) {
+                    fromUser = userP.text();
+                  }
+                  contentText = content;
+                }
+                html += fromUser + ":" + contentText;
+                break;
+              case 3:
+                if (content == null || content == "") {
+                  continue;
+                } else if (content.indexOf("@") != -1) {
+                  //群组
+                  //fromUser = content.substr(0, content.indexOf(':'));
+                  fromUser = msg.fromUserName;
+                  fromUser = fromUser.split('@').join('\\@');//@转义
+                  let userP = $('#' + fromUser);
+                  if (userP != null) {
+                    fromUser = userP.text();
+                  }
+                  contentText = content.substr(content.indexOf(':') + 1, content.length);
+                } else {
+                  //用户
+                  fromUser = msg.fromUserName;
+                  fromUser = fromUser.split('@').join('\\@');//@转义
+                  let userP = $('#' + fromUser);
+                  if (userP != null) {
+                    fromUser = userP.text();
+                  }
+                  contentText = content;
+                }
+                html += fromUser + ":" + contentText;
+                break;
+              default:
+                html += "收到未开发消息：{" + content + "}";
+            }
+            html += "(消息类型：" + msgType + ")";
+            html += "</div>"
           }
           $('#session').html(html);
         }
@@ -261,7 +370,7 @@
         //不断刷新
         setTimeout(function () {
           refreshMsg(result.syncKey);
-        },5000);
+        }, 5000);
       },
       error: function (e) {
         console.log(e);
@@ -269,6 +378,18 @@
     });
   }
 
+  /**
+   * 返回头像标签
+   */
+  function getImgTag(headImgUrl) {
+    if (headImgUrl != null && headImgUrl != "") {
+      headImgUrl = headImgUrl.replace('?', '&');
+      headImgUrl = "111/getImg?prefix=" + headImgUrl;
+      return "<img class='headImg' src='" + headImgUrl + "' />";
+    } else {
+      return "";
+    }
+  }
 </script>
 <body>
 <img id="qrCode" src="" alt="二维码">
