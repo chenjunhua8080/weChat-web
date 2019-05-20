@@ -230,6 +230,56 @@ public class HttpsUtil {
     /**
      * 发送post请求
      */
+    public static String post(String url, Map<String, Object> query, Map<String, Object> body,
+        Map<String, String> headers) throws Exception {
+        log.info("url     --> {}", url);
+        log.info("query   --> {}", query == null ? null : query.toString());
+        log.info("body  --> {}", body == null ? null : body.toString());
+        log.info("headers  --> {}", headers == null ? null : headers.toString());
+        log.info("method  --> {}", "POST");
+
+        HttpClient client = new HttpClient();
+        PostMethod post = new PostMethod(url);
+
+        /**
+         * setQueryString自动编码导致ticket的‘@’改变，ret=1
+         */
+        if (query != null) {
+            NameValuePair[] params = new NameValuePair[query.size()];
+            List<String> list = new ArrayList<>(query.keySet());
+            for (int i = 0; i < list.size(); i++) {
+                String key = list.get(i);
+                NameValuePair nameValuePair = new NameValuePair(key, query.get(key).toString());
+                params[i] = nameValuePair;
+            }
+            post.setQueryString(params);
+        }
+
+        if (body != null) {
+            RequestEntity requestEntity = new StringRequestEntity(JSONObject.fromObject(body).toString());
+            post.setRequestEntity(requestEntity);
+        }
+        if (headers != null) {
+            for (String item : headers.keySet()) {
+                post.addRequestHeader(item, headers.get(item));
+            }
+        }
+
+        client.executeMethod(post);
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(post.getResponseBodyAsStream(), "utf-8"));
+        String line;
+        StringBuilder sb = new StringBuilder();
+        while ((line = br.readLine()) != null) {
+            sb.append(line);
+        }
+        log.info("response  --> {}", sb);
+        return sb.toString();
+    }
+
+    /**
+     * 发送post请求
+     */
     public static String post(String url, Map<String, Object> query, Map<String, Object> body) throws Exception {
         log.info("url     --> {}", url);
         log.info("query   --> {}", query == null ? null : query.toString());
@@ -260,7 +310,7 @@ public class HttpsUtil {
         client.executeMethod(post);
 
         BufferedReader br = new BufferedReader(new InputStreamReader(post.getResponseBodyAsStream(), "utf-8"));
-        String line = null;
+        String line;
         StringBuilder sb = new StringBuilder();
         while ((line = br.readLine()) != null) {
             sb.append(line);

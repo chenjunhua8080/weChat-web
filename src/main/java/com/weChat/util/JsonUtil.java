@@ -45,7 +45,7 @@ public class JsonUtil {
         });
 
         //自定义的list声明
-        if (!childClass.isEmpty()) {
+        if (childClass != null) {
             config.setClassMap(childClass);
         }
 

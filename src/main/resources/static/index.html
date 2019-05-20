@@ -46,6 +46,10 @@
     .relative {
       position: relative;
     }
+
+    .msgImg {
+      width: 240px;
+    }
   </style>
 </head>
 <script src="jquery-3.3.1.min.js"></script>
@@ -213,6 +217,20 @@
 
     //设置会话
     let sessionHtml = "<h2>最近会话</h2>";
+
+    //置顶我的信息
+    let user = result.user;
+    sessionHtml += "<div class='relative'>";
+    sessionHtml += getImgTag(user.headImgUrl);
+    sessionHtml += "<p class='label'>";
+    sessionHtml += user.nickName;
+    sessionHtml += "(" + "我" + ")";
+    sessionHtml += "</p>";
+    sessionHtml += "<input type='radio' name='userName' checked value='" + user.userName + "'/>";
+    sessionHtml += "<p style='display: none' id='" + user.userName + "'>" + user.nickName + "</p>";
+    sessionHtml += "</div>";
+
+    //渲染列表
     let sessionList = result.contactList;
     let session;
     for (let i = 0; i < sessionList.length; i++) {
@@ -224,6 +242,7 @@
       if (session.remarkName != null && session.remarkName != "") {
         sessionHtml += "(" + session.remarkName + ")";
       }
+      sessionHtml += "<input type='radio' name='userName' value='" + session.userName + "'/>";
       sessionHtml += "</p>";
       sessionHtml += "<p style='display: none' id='" + session.userName + "'>" + session.nickName + "</p>";
       sessionHtml += "</div>";
@@ -285,6 +304,7 @@
             msg = addMsgList[item];
             msgType = msg.msgType;
             content = msg.content;
+            console.log("content: " + content);
             html += "<div>"
             switch (msgType) {
               case 49:
@@ -300,13 +320,17 @@
                   fromUser = fromUser.split('@').join('\\@');//@转义
                   let userP = $('#' + fromUser);
                   if (userP != null) {
-                    fromUser = userP.text();
+                    if (userP.length > 1) {
+                      fromUser = userP[0].text();
+                    }else {
+                      fromUser = userP.text();
+                    }
                   }
                   //获取群聊联系人消息
                   let sendUser = content.substr(0, content.indexOf(':'));
                   let contactList = initObject.contactList;
                   for (let i in contactList) {
-                    if ( msg.fromUserName == contactList[i].userName) {
+                    if (msg.fromUserName == contactList[i].userName) {
                       for (let j in contactList[i].memberList) {
                         if (sendUser == contactList[i].memberList[j].userName) {
                           sendUser = contactList[i].memberList[j].nickName;
@@ -327,7 +351,11 @@
                   fromUser = fromUser.split('@').join('\\@');//@转义
                   let userP = $('#' + fromUser);
                   if (userP != null) {
-                    fromUser = userP.text();
+                    if (userP.length > 1) {
+                      fromUser = userP[0].text();
+                    }else {
+                      fromUser = userP.text();
+                    }
                   }
                   contentText = content;
                 }
@@ -336,27 +364,121 @@
               case 3:
                 if (content == null || content == "") {
                   continue;
-                } else if (content.indexOf("@") != -1) {
+                } else if (content.indexOf("@") != -1 && content.indexOf("<br/>") != -1) {
                   //群组
                   //fromUser = content.substr(0, content.indexOf(':'));
                   fromUser = msg.fromUserName;
                   fromUser = fromUser.split('@').join('\\@');//@转义
                   let userP = $('#' + fromUser);
                   if (userP != null) {
-                    fromUser = userP.text();
+                    if (userP.length > 1) {
+                      fromUser = userP[0].text();
+                    }else {
+                      fromUser = userP.text();
+                    }
                   }
-                  contentText = content.substr(content.indexOf(':') + 1, content.length);
+                  //获取群聊联系人消息
+                  let sendUser = content.substr(0, content.indexOf(':'));
+                  let contactList = initObject.contactList;
+                  for (let i in contactList) {
+                    if (msg.fromUserName == contactList[i].userName) {
+                      for (let j in contactList[i].memberList) {
+                        if (sendUser == contactList[i].memberList[j].userName) {
+                          sendUser = contactList[i].memberList[j].nickName;
+                          if (contactList[i].memberList[j].displayName != null
+                              && contactList[i].memberList[j].displayName != "") {
+                            sendUser += "(" + contactList[i].memberList[j].displayName + ")";
+                          }
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  fromUser += "--" + sendUser;
                 } else {
                   //用户
                   fromUser = msg.fromUserName;
                   fromUser = fromUser.split('@').join('\\@');//@转义
                   let userP = $('#' + fromUser);
                   if (userP != null) {
-                    fromUser = userP.text();
+                    if (userP.length > 1) {
+                      fromUser = userP[0].text();
+                    }else {
+                      fromUser = userP.text();
+                    }
                   }
-                  contentText = content;
                 }
-                html += fromUser + ":" + contentText;
+                contentText = msg.msgId;
+                html += fromUser + ":";
+                html += getImgTag2("/cgi-bin/mmwebwx-bin/webwxgetmsgimg?MsgID=" + contentText + "&skey=&type=slave");
+                break;
+              case 47:
+                if (content.indexOf("@") != -1 && content.indexOf("<br/>") != -1) {
+                  //群组
+                  //fromUser = content.substr(0, content.indexOf(':'));
+                  fromUser = msg.fromUserName;
+                  fromUser = fromUser.split('@').join('\\@');//@转义
+                  let userP = $('#' + fromUser);
+                  if (userP != null) {
+                    if (userP.length > 1) {
+                      fromUser = userP[0].text();
+                    }else {
+                      fromUser = userP.text();
+                    }
+                  }
+                  //获取群聊联系人消息
+                  let sendUser = content.substr(0, content.indexOf(':'));
+                  let contactList = initObject.contactList;
+                  for (let i in contactList) {
+                    if (msg.fromUserName == contactList[i].userName) {
+                      for (let j in contactList[i].memberList) {
+                        if (sendUser == contactList[i].memberList[j].userName) {
+                          sendUser = contactList[i].memberList[j].nickName;
+                          if (contactList[i].memberList[j].displayName != null
+                              && contactList[i].memberList[j].displayName != "") {
+                            sendUser += "(" + contactList[i].memberList[j].displayName + ")";
+                          }
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  fromUser += "--" + sendUser;
+                } else {
+                  //用户
+                  fromUser = msg.fromUserName;
+                  fromUser = fromUser.split('@').join('\\@');//@转义
+                  let userP = $('#' + fromUser);
+                  if (userP != null) {
+                    if (userP.length > 1) {
+                      fromUser = userP[0].text();
+                    }else {
+                      fromUser = userP.text();
+                    }
+                  }
+                }
+
+                html += fromUser + ":";
+                let regex = /cdnurl = "(.*?)"/;
+                let regexResult = regex.exec(content);
+                if (regexResult == null) {
+                  console.log("官方表情包，在手机查看~")
+                  contentText = msg.msgId;
+                  html += getImgTag2("/cgi-bin/mmwebwx-bin/webwxgetmsgimg?MsgID=" + contentText + "&skey=&type=slave");
+                  html += "(官方表情包，在手机查看~)";
+                } else {
+                  contentText = regexResult[1];
+                  html += "<img src='" + contentText + "'/>";
+                }
+                break;
+              case 51:
+                console.log("初始化?msgType:" + msgType);
+                break;
+              case 10000:
+                html += "系统消息：" + content;
+                break;
+              case 10002:
+                html += "撤回消息：" + content;
                 break;
               default:
                 html += "收到未开发消息：{" + content + "}";
@@ -390,9 +512,62 @@
       return "";
     }
   }
+
+  /**
+   * 返回头像标签
+   */
+  function getImgTag2(headImgUrl) {
+    if (headImgUrl != null && headImgUrl != "") {
+      headImgUrl = headImgUrl.replace('?', '&');
+      headImgUrl = "/getImg?prefix=" + headImgUrl;
+      return "<img class='msgImg' src='" + headImgUrl + "' />";
+    } else {
+      return "";
+    }
+  }
+
+  /**
+   * 发送消息
+   */
+  function send() {
+    let userName = $("input[name='userName']:checked").val();
+    if (userName != null && userName != "") {
+      let content = $('#text').val();
+      if (content.trim() == "") {
+        alert("内容不能为空");
+      }
+      //发送
+      $.ajax({
+        url: "/send",
+        type: "POST",
+        data: {"type": 1, "content": content, "fromUserName": initObject.user.userName, "toUserName": userName},
+        success: function (result) {
+          console.log(result);
+          let baseResponse = result.baseResponse;
+          if (baseResponse.ret != 0) {
+            //请求数据错误，重新登录
+            alert(JSON.stringify(baseResponse));
+          } else {
+            alert("发送成功");
+          }
+        },
+        error: function (e) {
+          console.log(e);
+        }
+      });
+    } else {
+      alert("选择发送会话");
+    }
+  }
 </script>
 <body>
 <img id="qrCode" src="" alt="二维码">
+<div id="from" style="text-align: center;width: 100%;height: 200px;">
+  <div id="content">
+    <textarea id="text" style="width: 500px;height: 200px;"></textarea>
+  </div>
+  <div><input type="button" id="send" onclick="send()" value="发送"/></div>
+</div>
 <h1 id="hello"></h1>
 <div id="session"></div>
 <div id="mp"></div>

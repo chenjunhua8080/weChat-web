@@ -1,11 +1,13 @@
 package com.weChat.controller;
 
+import com.weChat.po.response.SendMsgResponse;
 import com.weChat.po.wechat.BaseResponsePO;
 import com.weChat.po.wechat.ContactListPO;
 import com.weChat.po.wechat.InitPO;
 import com.weChat.po.wechat.LoginPagePO;
 import com.weChat.po.wechat.SyncKeyPO;
 import com.weChat.po.wechat.WebWxSyncPO;
+import com.weChat.request.SendMsgRequest;
 import com.weChat.util.HttpsUtil;
 import com.weChat.util.WeChatUtil;
 import java.io.BufferedReader;
@@ -179,12 +181,18 @@ public class UserController {
      * 请求图片
      */
     @GetMapping("/getImg")
-    public void getImg(String prefix, String seq, String username, String skey,
+    public void getImg(String prefix, String seq, String username, String msgId, String skey,
         @SessionAttribute("loginPage") LoginPagePO loginPagePO, HttpServletResponse response) {
         if (loginPagePO == null) {
             return;
         }
-        String url = "https://wx2.qq.com" + prefix + "?seq=" + seq + "&username=" + username + "&skey=" + skey;
+        String url = "https://wx2.qq.com" + prefix + "?seq=" + seq + "&skey=" + skey;
+        if (username != null) {
+            url += "&username=" + username;
+        }
+        if (msgId != null) {
+            url += "&MsgID=" + msgId;
+        }
         Map<String, String> headers = new HashMap<>();
         String cookie = "wxuin=" + loginPagePO.getWxUin();
         cookie += ";wxsid=" + loginPagePO.getWxSid();
@@ -210,6 +218,15 @@ public class UserController {
         }
         //不能加返回？
         //return;
+    }
+
+    @PostMapping("/send")
+    public SendMsgResponse sendMsg(SendMsgRequest msgRequest, @SessionAttribute("loginPage") LoginPagePO loginPagePO) {
+        if (loginPagePO == null) {
+            return null;
+        }
+        SendMsgResponse response = WeChatUtil.setSendMsg(loginPagePO, msgRequest);
+        return response;
     }
 
     public static void main(String[] args) throws IOException {

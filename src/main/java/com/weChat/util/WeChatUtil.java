@@ -1,6 +1,7 @@
 package com.weChat.util;
 
 import com.weChat.global.Config;
+import com.weChat.po.response.SendMsgResponse;
 import com.weChat.po.wechat.AddMsgListPO;
 import com.weChat.po.wechat.BatchContactPO;
 import com.weChat.po.wechat.ContactListPO;
@@ -13,6 +14,7 @@ import com.weChat.po.wechat.MemberPO;
 import com.weChat.po.wechat.SyncKeyItemPO;
 import com.weChat.po.wechat.SyncKeyPO;
 import com.weChat.po.wechat.WebWxSyncPO;
+import com.weChat.request.SendMsgRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -92,11 +94,23 @@ public final class WeChatUtil {
     private final static String webWxSync = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsync";
 
     /**
-     * 10. 发送消息（参考方法 webwxsendmsg） method POST params BaseRequest: { DeviceID:”xxx” Sid:”xxx” Skey:”xxx” Uin:xxx } Msg:
-     * { ClientMsgId:”14672041846800613” Content:”hello, myself.” FromUserName:”xxx” LocalID:”14672041846800613”
-     * ToUserName:”filehelper” Type:1 } Scene:0
+     * 10. 发送消息（参考方法 webwxsendmsg） method POST params
+     * {"BaseRequest":{"Uin":3162028971,"Sid":"4y0mXxNmD8iFhOk+","Skey":"@crypt_253d2949_dbcea1e6456c79d8368d229ccbcf8d0a","DeviceID":"e624924664349023"},
+     * "Msg":{"Type":1,"Content":"发送了，就不会有自己的？","FromUserName":"@217c1bd243e7ba360ba8f0e741fe0d0237a2a7b64905ea3e93f13695500b9262","ToUserName":"@@408297956eda7f2617f0ccb2e11a75a939054d45f259c5bd75a4b87d3d0afdd3","LocalID":"15583358878040410","ClientMsgId":"15583358878040410"},
+     * "Scene":0}
+     *
+     * 17位时间戳
      */
-    private final static String sendMsg = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg?pass_ticket=PASS_TICKET";
+    private final static String sendMsg = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg";
+
+
+    /**
+     * 拉群
+     * {"AddMemberList":"@a32d253baca68aa9b51f7b656fde81d73057f3ac453e0c9e4477fa8ab13b48f2",
+     * "ChatRoomName":"@@408297956eda7f2617f0ccb2e11a75a939054d45f259c5bd75a4b87d3d0afdd3",
+     * "BaseRequest":{"Uin":3162028971,"Sid":"4y0mXxNmD8iFhOk+","Skey":"@crypt_253d2949_dbcea1e6456c79d8368d229ccbcf8d0a","DeviceID":"e414552180563547"}}
+     */
+    private final static String chatRoom ="https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxupdatechatroom?fun=addmember&lang=zh_CN";
 
 
     /**
@@ -559,8 +573,6 @@ public final class WeChatUtil {
         syncKeyMap.put("List", list);
         body.put("SyncKey", syncKeyMap);
 
-        System.out.println(JSONObject.fromObject(body).toString());
-
         JSONObject resp = JSONObject.fromObject(HttpsUtil.post(webWxSync, query, body));
 
         Map<String, Class> childClass = new HashMap<>();
@@ -569,6 +581,59 @@ public final class WeChatUtil {
         WebWxSyncPO webWxSyncPO = (WebWxSyncPO) JsonUtil
             .toBean(resp, WebWxSyncPO.class, ignoreLowercase, childClass);
         return webWxSyncPO;
+    }
+
+
+    /**
+     * 发送消息，单条，文本类型
+     * @param loginPagePO
+     * @param msgRequest
+     * @return
+     * @throws Exception
+     */
+    public static SendMsgResponse setSendMsg(LoginPagePO loginPagePO, SendMsgRequest msgRequest){
+        Map<String, Object> query = new HashMap<>();
+        query.put("lang", Config.wechat_lang);
+
+        Map<String, Object> body = new HashMap<>();
+
+        Map<String, Object> baseRequest = new HashMap<>();
+        baseRequest.put("DeviceID", getDeviceId());
+        baseRequest.put("Sid", loginPagePO.getWxSid());
+        baseRequest.put("Skey", loginPagePO.getSKey());
+        baseRequest.put("Uin", loginPagePO.getWxUin());
+
+        Map<String, Object> msgMap = new HashMap<>();
+        msgMap.put("Type", msgRequest.getType());
+        msgMap.put("Content", msgRequest.getContent());
+        msgMap.put("FromUserName", msgRequest.getFromUserName());
+        msgMap.put("ToUserName", msgRequest.getToUserName());
+        long currentTimeMillis = System.currentTimeMillis();
+        msgMap.put("LocalID", currentTimeMillis);
+        msgMap.put("ClientMsgId", currentTimeMillis);
+
+        body.put("BaseRequest", baseRequest);
+        body.put("Scene", 0);
+        body.put("Msg", msgMap);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("cookie",
+            "webwx_data_ticket=" + loginPagePO.getWebwx_data_ticket()
+                + ";wxuin=" + loginPagePO.getWxUin() + ";"
+                + ";wxsid=" + loginPagePO.getWxSid() + ";");
+
+        JSONObject resp = null;
+        try {
+            resp = JSONObject.fromObject(HttpsUtil.post(sendMsg, query, body,headers));
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("发送消息，请求失败");
+        }
+
+        SendMsgResponse sendMsgResponse = (SendMsgResponse) JsonUtil
+            .toBean(resp, SendMsgResponse.class, ignoreLowercase, null);
+
+        return sendMsgResponse;
     }
 
     private static String getDeviceId() {
