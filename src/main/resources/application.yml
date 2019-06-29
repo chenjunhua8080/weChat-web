@@ -1,4 +1,10 @@
 spring:
+  #redis
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
+    database: 0
   #数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -7,12 +13,18 @@ spring:
     password: root
   #json数据格式
   jackson:
+  http:
+    #配置字符集
+    encoding:
+      charset: UTF-8
+      #覆盖原有的字符集
+      force: true
 #mybatis配置
 mybatis-plus:
   #映射文件位置
   mapper-locations: classpath*:mapper/**/*.xml
   #实体扫描，多个package用逗号或者分号分隔
-  type-aliases-package: com.weChat.po
+  type-aliases-package: com.wechat.po
   #原生 MyBatis 所支持的配置
   configuration:
     #驼峰下划线转换
