@@ -1,6 +1,7 @@
 package com.wechat.util;
 
 import com.wechat.global.GlobalConfig;
+import com.wechat.global.WXUserContext;
 import com.wechat.po.response.SendMsgResponse;
 import com.wechat.po.wechat.AddMsgListPO;
 import com.wechat.po.wechat.BatchContactPO;
@@ -37,19 +38,19 @@ import org.apache.commons.lang.ArrayUtils;
 @Slf4j
 public final class WeChatUtil {
 
-    public static String uin="3162028971";
-    public final static String LOGINPAGE="loginPage";
-    public final static String USERAVATAR="userAvatar";
+    public static String uin = "3162028971";
+    public final static String LOGINPAGE = "loginPage";
+    public final static String USERAVATAR = "userAvatar";
 
     /**
      * 退登
      */
-    private final static String logout="https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxlogout";
+    private final static String logout = "https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxlogout";
 
     /**
      * 免扫码
      */
-    private final static String notScanLogin="https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxpushloginurl";
+    private final static String notScanLogin = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxpushloginurl";
 
     /**
      * 1.获取二维码uuid
@@ -108,8 +109,7 @@ public final class WeChatUtil {
     private final static String webWxSync = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsync";
 
     /**
-     * 10. 发送消息（参考方法 webwxsendmsg） method POST params
-     * {"BaseRequest":{"Uin":3162028971,"Sid":"4y0mXxNmD8iFhOk+","Skey":"@crypt_253d2949_dbcea1e6456c79d8368d229ccbcf8d0a","DeviceID":"e624924664349023"},
+     * 10. 发送消息（参考方法 webwxsendmsg） method POST params {"BaseRequest":{"Uin":3162028971,"Sid":"4y0mXxNmD8iFhOk+","Skey":"@crypt_253d2949_dbcea1e6456c79d8368d229ccbcf8d0a","DeviceID":"e624924664349023"},
      * "Msg":{"Type":1,"Content":"发送了，就不会有自己的？","FromUserName":"@217c1bd243e7ba360ba8f0e741fe0d0237a2a7b64905ea3e93f13695500b9262","ToUserName":"@@408297956eda7f2617f0ccb2e11a75a939054d45f259c5bd75a4b87d3d0afdd3","LocalID":"15583358878040410","ClientMsgId":"15583358878040410"},
      * "Scene":0}
      *
@@ -119,12 +119,11 @@ public final class WeChatUtil {
 
 
     /**
-     * 拉群
-     * {"AddMemberList":"@a32d253baca68aa9b51f7b656fde81d73057f3ac453e0c9e4477fa8ab13b48f2",
+     * 拉群 {"AddMemberList":"@a32d253baca68aa9b51f7b656fde81d73057f3ac453e0c9e4477fa8ab13b48f2",
      * "ChatRoomName":"@@408297956eda7f2617f0ccb2e11a75a939054d45f259c5bd75a4b87d3d0afdd3",
      * "BaseRequest":{"Uin":3162028971,"Sid":"4y0mXxNmD8iFhOk+","Skey":"@crypt_253d2949_dbcea1e6456c79d8368d229ccbcf8d0a","DeviceID":"e414552180563547"}}
      */
-    private final static String chatRoom ="https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxupdatechatroom?fun=addmember&lang=zh_CN";
+    private final static String chatRoom = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxupdatechatroom?fun=addmember&lang=zh_CN";
 
 
     /**
@@ -219,8 +218,9 @@ public final class WeChatUtil {
     /**
      * 4.初始化登录页面，直接用从waitForLogin返回的uri请求
      *
-     * ticket: A3ytELDXEHJ9WmEzyBjawS_x@qrticket_0 uuid: AeioKQv69A== lang: zh_CN scan: 1557286172
-     * fun: new version: v2 lang: zh_CN
+     * ticket: A3ytELDXEHJ9WmEzyBjawS_x@qrticket_0 uuid: AeioKQv69A== lang: zh_CN scan: 1557286172 fun: new version: v2
+     * lang: zh_CN
+     *
      * @return 重要的cookie： mm_lang	zh_CN webwx_auth_ticket CIsBEOTzr3wagAEVQ56NbJ0AViYB9E0nqg0NSD24/60LWp+GNBCyVzrjgfait2R8abbe9V/JU7Qh
      * webwx_data_ticket gSfvfQbvNCJnYqprUqJzhjdt wxloadtime 1557373727 wxsid gJeuoFQiQY5LBzlD wxuin 3162028971
      *
@@ -246,8 +246,8 @@ public final class WeChatUtil {
 
         JSONObject respObject = HttpsUtil.getReturnHeadAndBody(loginPage, query);
         Map<String, Object> map = XmlUtil.parseXml(respObject.getString("body"), "utf-8");
-        if (Integer.parseInt(map.get("ret").toString())!=0){
-            log.info("登录失败：{}",map.get("message"));
+        if (Integer.parseInt(map.get("ret").toString()) != 0) {
+            log.info("登录失败：{}", map.get("message"));
         }
         //主体字段
         LoginPagePO loginPagePO = new LoginPagePO();
@@ -326,6 +326,9 @@ public final class WeChatUtil {
         childClass.put("memberList", MemberPO.class);
 
         InitPO initPO = (InitPO) JsonUtil.toBean(resp, InitPO.class, ignoreLowercase, childClass);
+
+        //保存微信登录用户
+        WXUserContext.setUser(initPO.getUser());
         return initPO;
     }
 
@@ -399,7 +402,6 @@ public final class WeChatUtil {
      * "@dcd76f8d0444ab9e187e07744b1a0338", EncryChatRoomId: ""},…]
      *
      * 备注：这里的list 取值于init.chatSet除去特殊值 和 对应init.ContactList里不是"KeyWord": "gh_"(公众号)的数据
-     *
      * @return BaseResponse: {Ret: 0, ErrMsg: ""} ContactList: [{Uin: 0, UserName: "@@01c40efbdbec8d0220701a6711ad82760542c576407af76ed6b0cf34ab1af06e",…},…]
      * Count: 17
      */
@@ -430,8 +432,8 @@ public final class WeChatUtil {
     }
 
     /**
-     * 获取chatSet的userName 的详细信息，有些在init和getContact 都可能获取不到(比如最近没新信息，也没保存到通讯录的群组。也可能根据手机里微信的聊天列表)
-     * 这里的list 取值于init.chatSet除去特殊值 和 对应init.ContactList里不是"KeyWord": "gh_"(公众号)的数据
+     * 获取chatSet的userName 的详细信息，有些在init和getContact 都可能获取不到(比如最近没新信息，也没保存到通讯录的群组。也可能根据手机里微信的聊天列表) 这里的list
+     * 取值于init.chatSet除去特殊值 和 对应init.ContactList里不是"KeyWord": "gh_"(公众号)的数据
      */
     public static InitPO batchGetContact(InitPO initPO, LoginPagePO loginPagePO) throws Exception {
         String chatSet = initPO.getChatSet();
@@ -442,7 +444,7 @@ public final class WeChatUtil {
         Iterator<ContactPO> iterator = contactList.iterator();
         while (iterator.hasNext()) {
             ContactPO contactPO = iterator.next();
-            if (ArrayUtils.contains(mpKeyWord,contactPO.getKeyWord())) {
+            if (ArrayUtils.contains(mpKeyWord, contactPO.getKeyWord())) {
                 iterator.remove();
                 log.info("remove gh_ {} in initPO.getContactList()", contactPO.getNickName());
             }
@@ -483,7 +485,7 @@ public final class WeChatUtil {
             Iterator<ContactPO> iterator2 = batchContactList.iterator();
             while (iterator2.hasNext()) {
                 ContactPO contactPO = iterator2.next();
-                if (ArrayUtils.contains(mpKeyWord,contactPO.getKeyWord())) {
+                if (ArrayUtils.contains(mpKeyWord, contactPO.getKeyWord())) {
                     iterator2.remove();
                     log.info("remove gh_ {} in batchContactList", contactPO.getNickName());
                 }
@@ -500,15 +502,9 @@ public final class WeChatUtil {
     /**
      * 9.同步刷新
      *
-     * @param loginPagePO
-     * r: 1557286176625
-     * skey: @crypt_253d2949_b195b14efa911d623d9eae272cebd068
-     * sid: MqHSJVdEym+yvsiP
-     * uin:3162028971
-     * deviceid: e624739355264879
-     * synckey: 1_661091461|2_661091587|3_661091588|1000_1557272238
+     * @param loginPagePO r: 1557286176625 skey: @crypt_253d2949_b195b14efa911d623d9eae272cebd068 sid: MqHSJVdEym+yvsiP
+     * uin:3162028971 deviceid: e624739355264879 synckey: 1_661091461|2_661091587|3_661091588|1000_1557272238
      * synckey第一次从init的返回拿，后面从webwxsync拿 _: 1557284851581
-     *
      * @return window.synccheck={retcode:"0",selector:"2"}
      */
     public static JSONObject syncCheck(LoginPagePO loginPagePO, SyncKeyPO syncKeyPO) throws Exception {
@@ -543,15 +539,15 @@ public final class WeChatUtil {
     /**
      * 10.web同步刷新
      *
-     * @param loginPagePO sid: MqHSJVdEym yvsiP skey: @crypt_253d2949_b195b14efa911d623d9eae272cebd068 lang: zh_CN pass_ticket:
-     * W6hDdkay6sqO8qdGja5%2F8xPzGEJuC4lvSwCQ1z1%2BbuigRfdinyjQJxfbGInoAI4c
+     * @param loginPagePO sid: MqHSJVdEym yvsiP skey: @crypt_253d2949_b195b14efa911d623d9eae272cebd068 lang: zh_CN
+     * pass_ticket: W6hDdkay6sqO8qdGja5%2F8xPzGEJuC4lvSwCQ1z1%2BbuigRfdinyjQJxfbGInoAI4c
      *
      * <b>head:</b><br/>
      * BaseRequest: {Uin: 3162028971, Sid: "MqHSJVdEym+yvsiP", Skey: "@crypt_253d2949_b195b14efa911d623d9eae272cebd068",…}
      * SyncKey: {Count: 4, List: [{Key: 1, Val: 661091461}, {Key: 2, Val: 661091587}, {Key: 3, Val: 661091588},…]} rr:
      * 1786951690
-     * @return {BaseResponse: {Ret: 0, ErrMsg: ""}, AddMsgCount: 0, AddMsgListPO: [], ModContactCount: 0,…} AddMsgCount: 0
-     * AddMsgListPO: [] BaseResponse: {Ret: 0, ErrMsg: ""} ContinueFlag: 0 DelContactCount: 0 DelContactList: []
+     * @return {BaseResponse: {Ret: 0, ErrMsg: ""}, AddMsgCount: 0, AddMsgListPO: [], ModContactCount: 0,…} AddMsgCount:
+     * 0 AddMsgListPO: [] BaseResponse: {Ret: 0, ErrMsg: ""} ContinueFlag: 0 DelContactCount: 0 DelContactList: []
      * ModChatRoomMemberCount: 0 ModChatRoomMemberList: [] ModContactCount: 0 ModContactList: [] Profile: {BitFlag: 0,
      * UserName: {Buff: ""}, NickName: {Buff: ""}, BindUin: 0, BindEmail: {Buff: ""},…} SKey: "" SyncCheckKey: {Count:
      * 6, List: [{Key: 1, Val: 661091461}, {Key: 2, Val: 661091589}, {Key: 3, Val: 661091588},…]} SyncKey: {Count: 6,
@@ -594,18 +590,48 @@ public final class WeChatUtil {
         childClass.put("list", SyncKeyItemPO.class);
         WebWxSyncPO webWxSyncPO = (WebWxSyncPO) JsonUtil
             .toBean(resp, WebWxSyncPO.class, ignoreLowercase, childClass);
+
+        //处理消息
+        handleMsg(loginPagePO, webWxSyncPO);
+
         return webWxSyncPO;
+    }
+
+    /**
+     * 处理深井烧鹅消息
+     *
+     * 783eb2b218b530ac816a4dc4c46f63857fc4018b44bca6b6b031a68c854c44ea
+     *
+     * 处理教师资格证消息
+     *
+     * a8ba6c3c0419c2366bf003f17a04abef01225db62e9f0c93d8588df8d7c67d16
+     */
+    private static void handleMsg(LoginPagePO loginPagePO, WebWxSyncPO webWxSyncPO) {
+        if (webWxSyncPO.getAddMsgCount() > 0) {
+            for (AddMsgListPO addMsgListPO : webWxSyncPO.getAddMsgList()) {
+                if ("@@783eb2b218b530ac816a4dc4c46f63857fc4018b44bca6b6b031a68c854c44ea"
+                    .equals(addMsgListPO.getFromUserName())
+                    || "@@a8ba6c3c0419c2366bf003f17a04abef01225db62e9f0c93d8588df8d7c67d16"
+                    .equals(addMsgListPO.getFromUserName())) {
+                    if (addMsgListPO.getMsgType() == 1) {
+                        SendMsgRequest sendMsgRequest = new SendMsgRequest();
+                        sendMsgRequest.setType(1);
+                        sendMsgRequest.setContent(addMsgListPO.getContent());
+                        sendMsgRequest.setFromUserName(addMsgListPO.getToUserName());
+                        sendMsgRequest.setToUserName(addMsgListPO.getFromUserName());
+                        //发送
+                        setSendMsg(loginPagePO, sendMsgRequest);
+                    }
+                }
+            }
+        }
     }
 
 
     /**
      * 发送消息，单条，文本类型
-     * @param loginPagePO
-     * @param msgRequest
-     * @return
-     * @throws Exception
      */
-    public static SendMsgResponse setSendMsg(LoginPagePO loginPagePO, SendMsgRequest msgRequest){
+    public static SendMsgResponse setSendMsg(LoginPagePO loginPagePO, SendMsgRequest msgRequest) {
         Map<String, Object> query = new HashMap<>();
         query.put("lang", GlobalConfig.wechat_lang);
 
@@ -638,7 +664,7 @@ public final class WeChatUtil {
 
         JSONObject resp = null;
         try {
-            resp = JSONObject.fromObject(HttpsUtil.post(sendMsg, query, body,headers));
+            resp = JSONObject.fromObject(HttpsUtil.post(sendMsg, query, body, headers));
         } catch (Exception e) {
             e.printStackTrace();
             log.error("发送消息，请求失败");
@@ -661,7 +687,6 @@ public final class WeChatUtil {
 
     /**
      * 免扫码登录
-     * @param loginPagePO
      */
     public static String notScanLogin(LoginPagePO loginPagePO) throws Exception {
         Map<String, Object> query = new HashMap<>();
@@ -671,8 +696,8 @@ public final class WeChatUtil {
             "webwx_auth_ticket=" + loginPagePO.getWebwx_auth_ticket()
                 + ";webwxuvid=" + loginPagePO.getWebwxuvid() + ";"
                 + ";wxuin=" + loginPagePO.getWxUin() + ";");
-        JSONObject resp = JSONObject.fromObject(HttpsUtil.get(notScanLogin, query,header));
-        if (resp.getInt("ret")==0){
+        JSONObject resp = JSONObject.fromObject(HttpsUtil.get(notScanLogin, query, header));
+        if (resp.getInt("ret") == 0) {
             return resp.getString("uuid");
         }
         return null;
@@ -681,9 +706,9 @@ public final class WeChatUtil {
     /**
      * 退出登录
      */
-    public static JSONObject logout(LoginPagePO loginPagePO) throws Exception {
+    public static void logout(LoginPagePO loginPagePO) throws Exception {
         Map<String, Object> query = new HashMap<>();
-        query.put("redirect","1");
+        query.put("redirect", "1");
         query.put("type", "1");
         query.put("skey", loginPagePO.getSKey());
 
@@ -697,14 +722,12 @@ public final class WeChatUtil {
                 + ";wxuin=" + loginPagePO.getWxUin() + ";"
                 + ";wxsid=" + loginPagePO.getWxSid() + ";");
 
-        JSONObject resp = null;
         try {
-            resp = JSONObject.fromObject(HttpsUtil.post(logout, query, body,headers));
+            HttpsUtil.post(logout, query, body, headers);
         } catch (Exception e) {
             e.printStackTrace();
             log.error("退出登录异常");
         }
-        return resp;
     }
 
     public static void main(String[] args) throws Exception {

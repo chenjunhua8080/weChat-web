@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.Cookie;
@@ -81,8 +82,8 @@ public class UserController {
         }
         JSONObject jsonObject = JSONObject.fromObject(loginPagePOStr);
         LoginPagePO loginPagePO = (LoginPagePO) JSONObject.toBean(jsonObject, LoginPagePO.class);
-        JSONObject logout = WeChatUtil.logout(loginPagePO);
-        return logout.toString();
+        WeChatUtil.logout(loginPagePO);
+        return "ok";
     }
 
 
@@ -240,6 +241,9 @@ public class UserController {
     @GetMapping("/getImg")
     public void getImg(String prefix, String seq, String username, String msgId, String skey,
         @SessionAttribute("loginPage") LoginPagePO loginPagePO, HttpServletResponse response) {
+//        response.setHeader("Cache-Control", "no-store, no-cache");
+        response.setContentType("image/jpeg;charset=ISO-8859-1");
+
         if (loginPagePO == null) {
             return;
         }
@@ -259,7 +263,8 @@ public class UserController {
         try (
             InputStream inputStream = HttpsUtil.get(url, null, headers, true);
             //微信返回的是编码ISO-8859-1，InputStreamReader()默认utf-8,坑
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "ISO-8859-1"))
+            BufferedReader bufferedReader = new BufferedReader(
+                new InputStreamReader(inputStream, StandardCharsets.ISO_8859_1))
         ) {
             //这个方法可以在读写操作前先得知数据流里有多少个字节可以读取需要注意的是，如果这个方法用在从本地文件读取数据时，一般不会遇到问题，但如果是用于网络操作，就经常会遇到一些麻烦。比如，Socket通讯时，对方明明发来了1000个字节，但是自己的程序调用available()方法却只得到900，或者100，甚至是0，感觉有点莫名其妙，怎么也找不到原因。其实，这是因为网络通讯往往是间断性的，一串字节往往分几批进行发送。本地程序调用available()方法有时得到0，这可能是对方还没有响应，也可能是对方已经响应了，但是数据还没有送达本地。对方发送了1000个字节给你，也许分成3批到达，这你就要调用3次available()方法才能将数据总数全部得到。
             //int length = inputStream.available()

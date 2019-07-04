@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <title>扫描登录</title>
   <style>
+    #logout {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
     #qrCode {
       display: none;
       width: 270px;
@@ -57,6 +63,7 @@
   const wxUrl = "https://wx2.qq.com";
   let uuid;
   let initObject;
+  let syncKey;
 
   /**
    * 开始执行
@@ -83,20 +90,55 @@
   }
 
   /**
+   * 退出
+   */
+  function logout() {
+    $.get("/logout", function (result) {
+      console.log("logout:" + result);
+      if (result == null) {
+        alert("稍后再试");
+      }
+    });
+  }
+
+  /**
+   * 免扫码登录
+   */
+  function notScanLogin() {
+    $.get("/notScanLogin", function (result) {
+      if (result == null) {
+        alert("稍后再试");
+      } else {
+        //设置uuid
+        uuid = result;
+        //刷新登录状态
+        refreshStatus();
+      }
+    });
+  }
+
+  /**
    * 请求二维码
    */
   function getQrCode() {
     $.get("/getQrCode", function (result) {
       uuid = result.uuid;
-      if (uuid == null) {
-        alert("稍后再试");
-      } else {
+      let userAvatar = result.userAvatar;
+      if (userAvatar != null) {
+        //登陆过的设置头像
+        $('#qrCode').attr("src", userAvatar);
+        $('#qrCode').toggle(1000);
+        //发起登录
+        notScanLogin();
+      } else if (qrCode != null) {
         //设置二维码
         $('#qrCode').attr("src", result.qrCode);
         $('#qrCode').toggle(1000);
 
         //刷新登录状态
         refreshStatus()
+      } else {
+        alert("稍后再试");
       }
     });
   }
@@ -155,7 +197,8 @@
         }
         initData(result);
         //刷新消息
-        refreshMsg(result.syncKey);
+        syncKey=result.syncKey;
+        refreshMsg(syncKey);
       },
       error: function (e) {
         console.log(e);
@@ -308,7 +351,7 @@
             html += "<div>"
             switch (msgType) {
               case 49:
-                html += "收到推文"
+                html += "收到分享链接：" + msg.fileName;
                 break;
               case 1:
                 if (content == null || content == "") {
@@ -322,7 +365,7 @@
                   if (userP != null) {
                     if (userP.length > 1) {
                       fromUser = userP[0].text();
-                    }else {
+                    } else {
                       fromUser = userP.text();
                     }
                   }
@@ -353,7 +396,7 @@
                   if (userP != null) {
                     if (userP.length > 1) {
                       fromUser = userP[0].text();
-                    }else {
+                    } else {
                       fromUser = userP.text();
                     }
                   }
@@ -373,7 +416,7 @@
                   if (userP != null) {
                     if (userP.length > 1) {
                       fromUser = userP[0].text();
-                    }else {
+                    } else {
                       fromUser = userP.text();
                     }
                   }
@@ -403,14 +446,14 @@
                   if (userP != null) {
                     if (userP.length > 1) {
                       fromUser = userP[0].text();
-                    }else {
+                    } else {
                       fromUser = userP.text();
                     }
                   }
                 }
                 contentText = msg.msgId;
                 html += fromUser + ":";
-                html += getImgTag2("/cgi-bin/mmwebwx-bin/webwxgetmsgimg?MsgID=" + contentText + "&skey=&type=slave");
+                html += getImgTag2("/cgi-bin/mmwebwx-bin/webwxgetmsgimg?msgId=" + contentText + "&skey=&type=slave");
                 break;
               case 47:
                 if (content.indexOf("@") != -1 && content.indexOf("<br/>") != -1) {
@@ -422,7 +465,7 @@
                   if (userP != null) {
                     if (userP.length > 1) {
                       fromUser = userP[0].text();
-                    }else {
+                    } else {
                       fromUser = userP.text();
                     }
                   }
@@ -452,7 +495,7 @@
                   if (userP != null) {
                     if (userP.length > 1) {
                       fromUser = userP[0].text();
-                    }else {
+                    } else {
                       fromUser = userP.text();
                     }
                   }
@@ -487,15 +530,17 @@
             html += "</div>"
           }
           $('#session').html(html);
+          syncKey = result.syncKey;
         }
-
-        //不断刷新
-        setTimeout(function () {
-          refreshMsg(result.syncKey);
-        }, 5000);
       },
       error: function (e) {
         console.log(e);
+      },
+      complete: function () {
+        //不断刷新
+        setTimeout(function () {
+          refreshMsg(syncKey);
+        }, 5000);
       }
     });
   }
@@ -514,7 +559,7 @@
   }
 
   /**
-   * 返回头像标签
+   * 返回消息图片标签
    */
   function getImgTag2(headImgUrl) {
     if (headImgUrl != null && headImgUrl != "") {
@@ -561,6 +606,7 @@
   }
 </script>
 <body>
+<!--<div><input type="button" id="logout" onclick="logout()" value="退出"/></div>-->
 <img id="qrCode" src="" alt="二维码">
 <div id="from" style="text-align: center;width: 100%;height: 200px;">
   <div id="content">
