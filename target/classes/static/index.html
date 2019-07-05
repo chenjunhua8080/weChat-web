@@ -56,6 +56,13 @@
     .msgImg {
       width: 240px;
     }
+
+    #robotList {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 220px;
+    }
   </style>
 </head>
 <script src="jquery-3.3.1.min.js"></script>
@@ -70,7 +77,48 @@
    */
   $(function () {
     login();
+    initRobotList();
   });
+
+  /**
+   * 初始化机器人列表
+   */
+  function initRobotList() {
+    $.get("/getRobotList", function (result) {
+      console.log(result);
+      if (result == null) {
+        alert("稍后再试");
+      }
+      let html = "";
+      for (let i in result) {
+        let robot = result[i];
+        html += "<input type='checkbox' name='robotIds' value='" + robot.id + "'>" + robot.name + "<br/>";
+      }
+      html = html + $('#robotList').html();
+      $('#robotList').html(html);
+    });
+  }
+
+  /**
+   * 设置群机器人
+   */
+  function addRobotToGroup() {
+    let robotIds = $("input[name='robotIds']:checked").val();
+    let userName = $("input[name='userName']:checked").val();
+    $.ajax({
+      url: "/addRobotToGroup",
+      type: "POST",
+      data: {"robotIds": robotIds, "groupId": userName},
+      success: function (result) {
+        if (result === "ok") {
+          alert("设置成功");
+        }
+      },
+      error: function (e) {
+        console.log(e);
+      }
+    });
+  }
 
   /**
    * 判断是否登录
@@ -197,7 +245,7 @@
         }
         initData(result);
         //刷新消息
-        syncKey=result.syncKey;
+        syncKey = result.syncKey;
         refreshMsg(syncKey);
       },
       error: function (e) {
@@ -364,7 +412,7 @@
                   let userP = $('#' + fromUser);
                   if (userP != null) {
                     if (userP.length > 1) {
-                      fromUser = userP[0].text();
+                      fromUser = userP[0].textContent;
                     } else {
                       fromUser = userP.text();
                     }
@@ -395,7 +443,7 @@
                   let userP = $('#' + fromUser);
                   if (userP != null) {
                     if (userP.length > 1) {
-                      fromUser = userP[0].text();
+                      fromUser = userP[0].textContent;
                     } else {
                       fromUser = userP.text();
                     }
@@ -415,7 +463,7 @@
                   let userP = $('#' + fromUser);
                   if (userP != null) {
                     if (userP.length > 1) {
-                      fromUser = userP[0].text();
+                      fromUser = userP[0].textContent;
                     } else {
                       fromUser = userP.text();
                     }
@@ -445,7 +493,7 @@
                   let userP = $('#' + fromUser);
                   if (userP != null) {
                     if (userP.length > 1) {
-                      fromUser = userP[0].text();
+                      fromUser = userP[0].textContent;
                     } else {
                       fromUser = userP.text();
                     }
@@ -464,7 +512,7 @@
                   let userP = $('#' + fromUser);
                   if (userP != null) {
                     if (userP.length > 1) {
-                      fromUser = userP[0].text();
+                      fromUser = userP[0].textContent;
                     } else {
                       fromUser = userP.text();
                     }
@@ -494,7 +542,7 @@
                   let userP = $('#' + fromUser);
                   if (userP != null) {
                     if (userP.length > 1) {
-                      fromUser = userP[0].text();
+                      fromUser = userP[0].textContent;
                     } else {
                       fromUser = userP.text();
                     }
@@ -613,6 +661,7 @@
     <textarea id="text" style="width: 500px;height: 200px;"></textarea>
   </div>
   <div><input type="button" id="send" onclick="send()" value="发送"/></div>
+  <div id="robotList"><input type="button" id="addRobotToGroup" onclick="addRobotToGroup()" value="设置机器"/></div>
 </div>
 <h1 id="hello"></h1>
 <div id="session"></div>

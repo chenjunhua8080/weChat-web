@@ -1,14 +1,18 @@
 package com.wechat.controller;
 
+import com.wechat.po.Robot;
 import com.wechat.po.response.SendMsgResponse;
 import com.wechat.po.wechat.BaseResponsePO;
 import com.wechat.po.wechat.ContactListPO;
 import com.wechat.po.wechat.InitPO;
 import com.wechat.po.wechat.LoginPagePO;
 import com.wechat.po.wechat.SyncKeyPO;
+import com.wechat.po.wechat.UserPO;
 import com.wechat.po.wechat.WebWxSyncPO;
 import com.wechat.request.SendMsgRequest;
+import com.wechat.request.addRobotToGroupRequest;
 import com.wechat.service.RedisService;
+import com.wechat.service.WeChatService;
 import com.wechat.util.HttpsUtil;
 import com.wechat.util.WeChatUtil;
 import java.io.BufferedReader;
@@ -18,6 +22,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +44,8 @@ public class UserController {
 
     @Autowired
     RedisService redisService;
+    @Autowired
+    WeChatService weChatService;
 
     /**
      * 判断是否登录
@@ -179,6 +186,11 @@ public class UserController {
         //处理batchContact
         init = WeChatUtil.batchGetContact(init, loginPage);
 
+        //保存登录用户
+        UserPO user = init.getUser();
+        JSONObject jsonObject = JSONObject.fromObject(user);
+        redisService.set("WECHATUSER", jsonObject);
+
         //只返回初始化信息，否则数据量太大
         return init;
     }
@@ -232,6 +244,9 @@ public class UserController {
             webWxSyncPO = WeChatUtil.webWxSync(loginPage, syncKeyPO);
             log.info("请求更新消息 end");
         }
+
+        //处理消息
+        weChatService.handleMsg(webWxSyncPO);
         return webWxSyncPO;
     }
 
@@ -289,6 +304,17 @@ public class UserController {
         }
         SendMsgResponse response = WeChatUtil.setSendMsg(loginPagePO, msgRequest);
         return response;
+    }
+
+    @PostMapping("/addRobotToGroup")
+    public String addRobotToGroup(addRobotToGroupRequest addRequest) {
+        weChatService.saveGroupRobot(addRequest.getRobotIds(), addRequest.getGroupId());
+        return "ok";
+    }
+
+    @GetMapping("/getRobotList")
+    public List<Robot> getRobotList() {
+        return weChatService.getRobotList();
     }
 
     public static void main(String[] args) throws IOException {

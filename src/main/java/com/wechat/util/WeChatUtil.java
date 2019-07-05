@@ -591,42 +591,17 @@ public final class WeChatUtil {
         WebWxSyncPO webWxSyncPO = (WebWxSyncPO) JsonUtil
             .toBean(resp, WebWxSyncPO.class, ignoreLowercase, childClass);
 
-        //处理消息
-        handleMsg(loginPagePO, webWxSyncPO);
-
         return webWxSyncPO;
     }
 
-    /**
-     * 处理深井烧鹅消息
-     *
-     * 783eb2b218b530ac816a4dc4c46f63857fc4018b44bca6b6b031a68c854c44ea
-     *
-     * 处理教师资格证消息
-     *
-     * a8ba6c3c0419c2366bf003f17a04abef01225db62e9f0c93d8588df8d7c67d16
-     */
-    private static void handleMsg(LoginPagePO loginPagePO, WebWxSyncPO webWxSyncPO) {
-        if (webWxSyncPO.getAddMsgCount() > 0) {
-            for (AddMsgListPO addMsgListPO : webWxSyncPO.getAddMsgList()) {
-                if ("@@783eb2b218b530ac816a4dc4c46f63857fc4018b44bca6b6b031a68c854c44ea"
-                    .equals(addMsgListPO.getFromUserName())
-                    || "@@a8ba6c3c0419c2366bf003f17a04abef01225db62e9f0c93d8588df8d7c67d16"
-                    .equals(addMsgListPO.getFromUserName())) {
-                    if (addMsgListPO.getMsgType() == 1) {
-                        SendMsgRequest sendMsgRequest = new SendMsgRequest();
-                        sendMsgRequest.setType(1);
-                        sendMsgRequest.setContent(addMsgListPO.getContent());
-                        sendMsgRequest.setFromUserName(addMsgListPO.getToUserName());
-                        sendMsgRequest.setToUserName(addMsgListPO.getFromUserName());
-                        //发送
-                        setSendMsg(loginPagePO, sendMsgRequest);
-                    }
-                }
-            }
-        }
+    public static SendMsgRequest getSendMsgRequest(String msg,String from,String to){
+        SendMsgRequest sendMsgRequest=new SendMsgRequest();
+        sendMsgRequest.setType(1);
+        sendMsgRequest.setContent(msg);
+        sendMsgRequest.setFromUserName(from);
+        sendMsgRequest.setToUserName(to);
+        return sendMsgRequest;
     }
-
 
     /**
      * 发送消息，单条，文本类型
