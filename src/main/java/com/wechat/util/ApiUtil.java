@@ -23,7 +23,7 @@ public class ApiUtil {
             JSONArray data = resp.getJSONArray("result");
             for (Object item : data) {
                 JSONObject day = (JSONObject) item;
-                result += day.getString("date") + "：" + day.getString("title") + "<br/>";
+                result += day.getString("date") + "：" + day.getString("title") + "\n";
             }
         } else {
             result = resp.getString("reason");

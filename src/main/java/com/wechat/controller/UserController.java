@@ -307,7 +307,7 @@ public class UserController {
     }
 
     @PostMapping("/addRobotToGroup")
-    public String addRobotToGroup(addRobotToGroupRequest addRequest) {
+    public String addRobotToGroup(@RequestBody addRobotToGroupRequest addRequest) {
         weChatService.saveGroupRobot(addRequest.getRobotIds(), addRequest.getGroupId());
         return "ok";
     }

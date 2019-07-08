@@ -103,12 +103,14 @@
    * 设置群机器人
    */
   function addRobotToGroup() {
-    let robotIds = $("input[name='robotIds']:checked").val();
+    // let robotIds = $("input[name='robotIds']:checked").val();
+    let robotIds=[1,2,3];
     let userName = $("input[name='userName']:checked").val();
     $.ajax({
       url: "/addRobotToGroup",
       type: "POST",
-      data: {"robotIds": robotIds, "groupId": userName},
+      contentType: 'application/json',//这个必须是这个格式
+      data: JSON.stringify({"robotIds": robotIds, "groupId": userName}),
       success: function (result) {
         if (result === "ok") {
           alert("设置成功");

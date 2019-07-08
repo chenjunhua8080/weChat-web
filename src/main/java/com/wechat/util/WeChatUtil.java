@@ -425,7 +425,7 @@ public final class WeChatUtil {
 
         Map<String, Class> childClass = new HashMap<>();
         childClass.put("contactList", ContactPO.class);
-        childClass.put("memberList", ContactPO.class);
+        childClass.put("memberList", MemberPO.class);
         BatchContactPO batchContactPO = (BatchContactPO) JsonUtil
             .toBean(resp, BatchContactPO.class, ignoreLowercase, childClass);
         return batchContactPO;
