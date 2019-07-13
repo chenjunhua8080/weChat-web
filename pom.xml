@@ -12,7 +12,7 @@
 
   <groupId>com.weChat</groupId>
   <artifactId>weChat-web</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-RELEASES</version>
   <packaging>jar</packaging>
 
   <name>weChat-web</name>
@@ -123,8 +123,18 @@
       <version>0.9.0</version>
     </dependency>
 
-
   </dependencies>
+
+  <distributionManagement>
+    <repository>
+      <id>maven-releases</id>
+      <url>http://192.168.1.168:8081/repository/maven-releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>maven-snapshots</id>
+      <url>http://192.168.1.168:8081/repository/maven-snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <build>
     <plugins>

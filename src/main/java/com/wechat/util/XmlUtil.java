@@ -1,6 +1,5 @@
 package com.wechat.util;
 
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -35,29 +34,6 @@ public class XmlUtil {
         } catch (DocumentException e) {
             log.error("解析XML错误");
         }
-        Element root = doc.getRootElement();
-        List<Element> nodes = root.elements();
-        for (Element item : nodes) {
-            map.put(item.getName(), item.getText());
-        }
-        return map;
-    }
-
-    /**
-     * 解析XML(请求)
-     *
-     * @param xmlStr xml字符串
-     * @param charset 默认utf-8
-     */
-    public static Map<String, Object> parseXml(String xmlStr, String charset) throws Exception {
-        if (charset == null || charset.equals("")) {
-            charset = "utf-8";
-        }
-        // 将解析结果存储在HashMap中
-        Map<String, Object> map = new HashMap<>();
-        SAXReader reader = new SAXReader();
-        byte[] bytes = xmlStr.getBytes(charset);
-        Document doc = reader.read(new ByteInputStream(bytes, bytes.length));
         Element root = doc.getRootElement();
         List<Element> nodes = root.elements();
         for (Element item : nodes) {

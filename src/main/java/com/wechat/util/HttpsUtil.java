@@ -168,11 +168,12 @@ public class HttpsUtil {
      * @author cjh
      * @date 2019/5/7 15:41
      */
-    public static JSONObject getReturnHeadAndBody(String url, Map<String, Object> query) throws Exception {
+    public static StreamAndHeaders getReturnHeadAndBody(String url, Map<String, Object> query) throws Exception {
         log.info("url     --> {}", url);
         log.info("args[]  --> {}", query == null ? null : query.toString());
         log.info("method  --> {}", "GET");
 
+        StreamAndHeaders result = new StreamAndHeaders();
         HttpClient client = new HttpClient();
         GetMethod get = new GetMethod(url);
         if (query != null) {
@@ -191,10 +192,9 @@ public class HttpsUtil {
 
         client.executeMethod(get);
 
-        JSONObject result = new JSONObject();
-        result.put("body", get.getResponseBodyAsString());
+        result.setBody(get.getResponseBodyAsStream());
         Header[] responseHeaders = get.getResponseHeaders();
-        result.put("headers", JSONArray.fromObject(responseHeaders));
+        result.setHeaders(JSONArray.fromObject(responseHeaders));
 
         log.info("response  --> {}", result.toString());
         return result;

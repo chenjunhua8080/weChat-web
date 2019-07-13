@@ -244,8 +244,8 @@ public final class WeChatUtil {
         query.put("fun", "new");
         query.put("version", 2);
 
-        JSONObject respObject = HttpsUtil.getReturnHeadAndBody(loginPage, query);
-        Map<String, Object> map = XmlUtil.parseXml(respObject.getString("body"), "utf-8");
+        StreamAndHeaders respObject = HttpsUtil.getReturnHeadAndBody(loginPage, query);
+        Map<String, Object> map = XmlUtil.parseXml(respObject.getBody());
         if (Integer.parseInt(map.get("ret").toString()) != 0) {
             log.info("登录失败：{}", map.get("message"));
         }
@@ -259,7 +259,7 @@ public final class WeChatUtil {
         loginPagePO.setPassTicket(map.get("pass_ticket").toString());
         loginPagePO.setIsGrayscale(Integer.parseInt(map.get("isgrayscale").toString()));
         //cookie字段
-        JSONArray headers = respObject.getJSONArray("headers");
+        JSONArray headers = respObject.getHeaders();
         for (int i = 0; i < headers.size(); i++) {
             JSONObject head = headers.getJSONObject(i);
             String headString = head.getString("value");
