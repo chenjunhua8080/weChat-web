@@ -41,4 +41,9 @@ public class TestController {
         return JWTUtil.createToken(user);
     }
 
+    @GetMapping("/jenkins")
+    public String jenkins() {
+        return "jenkins";
+    }
+
 }
