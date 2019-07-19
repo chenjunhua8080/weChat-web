@@ -12,7 +12,7 @@
 
   <groupId>com.weChat</groupId>
   <artifactId>weChat-web</artifactId>
-  <version>1.1.0-RELEASES</version>
+  <version>1.2.0-RELEASES</version>
   <packaging>jar</packaging>
 
   <name>weChat-web</name>
