@@ -16,7 +16,6 @@ import com.wechat.service.WeChatService;
 import com.wechat.util.HttpsUtil;
 import com.wechat.util.WeChatUtil;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -315,10 +314,6 @@ public class UserController {
     @GetMapping("/getRobotList")
     public List<Robot> getRobotList() {
         return weChatService.getRobotList();
-    }
-
-    public static void main(String[] args) throws IOException {
-
     }
 
 }
