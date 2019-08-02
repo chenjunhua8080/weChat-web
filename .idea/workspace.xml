@@ -6,22 +6,9 @@
     <option name="SHOW_STRUCTURE" value="true" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5e62695d-3d75-4c8b-9e1a-acd403ba78d8" name="Default Changelist" comment="0727 success">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/wechat/config/interceptor/InterceptorConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/wechat/config/interceptor/LoginInterceptor.java" afterDir="false" />
+    <list default="true" id="5e62695d-3d75-4c8b-9e1a-acd403ba78d8" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wechat/annotation/SysLog.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wechat/aop/SysLogAop.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wechat/controller/TestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wechat/controller/TestController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wechat/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wechat/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wechat/global/ResultEnum.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wechat/global/ResultEnum.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wechat/jwt/JWTFilter.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wechat/jwt/JWTFilterConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wechat/jwt/JWTUtil.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/wechat/service/WeChatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wechat/service/WeChatService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wechat/util/WeChatUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wechat/util/WeChatUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/META-INF/weChat-web.kotlin_module" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/META-INF/weChat-web.kotlin_module" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/static/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/index.html" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -36,7 +23,7 @@
     <option name="MAKE_PROJECT_ON_SAVE" value="true" />
   </component>
   <component name="CoverageViewManager">
-    <option name="myElementSize" value="275" />
+    <option name="myElementSize" value="303" />
   </component>
   <component name="DatabaseView">
     <option name="SHOW_INTERMEDIATE" value="true" />
@@ -284,7 +271,8 @@
       <workItem from="1564212362655" duration="1593000" />
       <workItem from="1564365260085" duration="598000" />
       <workItem from="1564394406289" duration="101000" />
-      <workItem from="1564645460380" duration="6877000" />
+      <workItem from="1564645460380" duration="8299000" />
+      <workItem from="1564709591820" duration="6333000" />
     </task>
     <task id="LOCAL-00001" summary="改为idea工程；&#10;启用web页面管理；&#10;完成:获取二维码，更新扫描状态">
       <created>1557227678981</created>
@@ -391,17 +379,15 @@
       <option name="project" value="LOCAL" />
       <updated>1564220138196</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="去掉一些设置&#10;自动回复支持个人">
+      <created>1564652440229</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1564652440229</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
-  </component>
-  <component name="TodoView">
-    <todo-panel id="selected-file">
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
-    <todo-panel id="all">
-      <are-packages-shown value="true" />
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
@@ -421,7 +407,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>
@@ -441,23 +429,8 @@
     <MESSAGE value="测试Jenkins 444" />
     <MESSAGE value="测试Jenkins 1.2.0" />
     <MESSAGE value="0727 success" />
-    <option name="LAST_COMMIT_MESSAGE" value="0727 success" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/wechat/service/WeChatService.java</url>
-          <line>158</line>
-          <option name="timeStamp" value="19" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/wechat/service/WeChatService.java</url>
-          <line>99</line>
-          <option name="timeStamp" value="20" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="去掉一些设置&#10;自动回复支持个人" />
+    <option name="LAST_COMMIT_MESSAGE" value="去掉一些设置&#10;自动回复支持个人" />
   </component>
   <component name="antWorkspaceConfiguration">
     <option name="IS_AUTOSCROLL_TO_SOURCE" value="false" />
@@ -467,6 +440,7 @@
     <SUITE FILE_PATH="coverage/weChat_web$WeChatUtil.ic" NAME="WeChatUtil Coverage Results" MODIFIED="1557279756831" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
       <FILTER>com.weChat.util.*</FILTER>
     </SUITE>
+    <SUITE FILE_PATH="coverage/weChat_web$WeChatWebApplication.ic" NAME="WeChatWebApplication Coverage Results" MODIFIED="1564717477119" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
   <component name="masterDetails">
     <states>

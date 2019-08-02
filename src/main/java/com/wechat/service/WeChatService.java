@@ -143,7 +143,7 @@ public class WeChatService {
                         }
                     }
                 }
-            } else if (addMsgListPO.getFromUserName().contains("@")){
+            } else if (addMsgListPO.getToUserName().equals("filehelper")) {
                 if (content.contains("天气")) {
                     sendMsg = ApiUtil.getSimpleWeadther();
                 } else if (content.contains("笑话")) {
@@ -153,8 +153,44 @@ public class WeChatService {
                 } else if (content.contains("help")) {
                     sendMsg = "支持指令：笑话、天气、历史上的今天";
                 } else {
-                    sendMsg = "";
+                    return;
                 }
+                sendMsg += "\n                                                  -- 小俊";
+                //发送
+                SendMsgRequest sendMsgRequest = WeChatUtil
+                    .getSendMsgRequest(sendMsg, userName, addMsgListPO.getToUserName());
+                WeChatUtil.setSendMsg(loginPagePO, sendMsgRequest);
+            } else if (userName.equals(addMsgListPO.getFromUserName())) {
+                if (content.contains("天气")) {
+                    sendMsg = ApiUtil.getSimpleWeadther();
+                } else if (content.contains("笑话")) {
+                    sendMsg = ApiUtil.getRandJoke();
+                } else if (content.contains("历史上的今天")) {
+                    sendMsg = ApiUtil.getTodayHistory();
+                } else if (content.contains("help")) {
+                    sendMsg = "支持指令：笑话、天气、历史上的今天";
+                } else {
+                    return;
+                }
+                sendMsg += "\n                                                  -- 小俊";
+                //发送
+                SendMsgRequest sendMsgRequest = WeChatUtil
+                    .getSendMsgRequest(sendMsg, userName, addMsgListPO.getToUserName());
+                WeChatUtil.setSendMsg(loginPagePO, sendMsgRequest);
+            } else if (addMsgListPO.getFromUserName().contains("@")) {
+                if (content.contains("天气")) {
+                    sendMsg = ApiUtil.getSimpleWeadther();
+                } else if (content.contains("笑话")) {
+                    sendMsg = ApiUtil.getRandJoke();
+                } else if (content.contains("历史上的今天")) {
+                    sendMsg = ApiUtil.getTodayHistory();
+                } else if (content.contains("help")) {
+                    sendMsg = "支持指令：笑话、天气、历史上的今天";
+                } else {
+                    return;
+                }
+                sendMsg += "\n                                                  -- 小俊";
+
                 //发送
                 SendMsgRequest sendMsgRequest = WeChatUtil
                     .getSendMsgRequest(sendMsg, userName, addMsgListPO.getFromUserName());
