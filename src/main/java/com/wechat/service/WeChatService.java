@@ -31,6 +31,7 @@ public class WeChatService {
     RobotDao robotDao;
     GroupRobotDao groupRobotDao;
     RedisService redisService;
+    ElemeService elemeService;
 
     public void saveGroupRobot(List<Long> robotIds, String groupId) {
         UpdateWrapper<GroupRobot> update = Wrappers.update(new GroupRobot());
@@ -152,6 +153,13 @@ public class WeChatService {
                     sendMsg = ApiUtil.getTodayHistory();
                 } else if (content.contains("help")) {
                     sendMsg = "支持指令：笑话、天气、历史上的今天";
+                } else if (content.contains("会员号")) {
+                    sendMsg = elemeService.getVip();
+                    if (sendMsg != null) {
+                        sendMsg += "\n点击获取验证码后，给我发送手机号！";
+                        }
+                } else if (content.matches("^\\d{11}$")) {
+                    sendMsg = elemeService.getCode(content);
                 } else {
                     return;
                 }

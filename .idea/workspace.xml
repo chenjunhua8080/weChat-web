@@ -7,6 +7,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5e62695d-3d75-4c8b-9e1a-acd403ba78d8" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/wechat/service/ElemeService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/wechat/service/WeChatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wechat/service/WeChatService.java" afterDir="false" />
     </list>
@@ -96,19 +97,19 @@
     <property name="settings.editor.selected.configurable" value="MavenSettings" />
   </component>
   <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources\static" />
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources\static\js" />
+      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.wechat.service" />
       <recent name="com.wechat.util" />
       <recent name="com.wechat.request" />
       <recent name="com.wechat.dao" />
       <recent name="com.wechat.po" />
-      <recent name="com.wechat.global" />
     </key>
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources\static\js" />
-      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources" />
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\test\idea-workspace\weChat-web\src\main\resources\static" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -272,7 +273,8 @@
       <workItem from="1564365260085" duration="598000" />
       <workItem from="1564394406289" duration="101000" />
       <workItem from="1564645460380" duration="8299000" />
-      <workItem from="1564709591820" duration="6333000" />
+      <workItem from="1564709591820" duration="7448000" />
+      <workItem from="1564968849426" duration="9265000" />
     </task>
     <task id="LOCAL-00001" summary="改为idea工程；&#10;启用web页面管理；&#10;完成:获取二维码，更新扫描状态">
       <created>1557227678981</created>
@@ -386,7 +388,14 @@
       <option name="project" value="LOCAL" />
       <updated>1564652440229</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary=".">
+      <created>1564731194773</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1564731194773</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -430,7 +439,8 @@
     <MESSAGE value="测试Jenkins 1.2.0" />
     <MESSAGE value="0727 success" />
     <MESSAGE value="去掉一些设置&#10;自动回复支持个人" />
-    <option name="LAST_COMMIT_MESSAGE" value="去掉一些设置&#10;自动回复支持个人" />
+    <MESSAGE value="." />
+    <option name="LAST_COMMIT_MESSAGE" value="." />
   </component>
   <component name="antWorkspaceConfiguration">
     <option name="IS_AUTOSCROLL_TO_SOURCE" value="false" />
