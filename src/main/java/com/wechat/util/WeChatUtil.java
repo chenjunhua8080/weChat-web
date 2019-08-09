@@ -594,8 +594,8 @@ public final class WeChatUtil {
         return webWxSyncPO;
     }
 
-    public static SendMsgRequest getSendMsgRequest(String msg,String from,String to){
-        SendMsgRequest sendMsgRequest=new SendMsgRequest();
+    public static SendMsgRequest getSendMsgRequest(String msg, String from, String to) {
+        SendMsgRequest sendMsgRequest = new SendMsgRequest();
         sendMsgRequest.setType(1);
         sendMsgRequest.setContent(msg);
         sendMsgRequest.setFromUserName(from);

@@ -83,14 +83,8 @@ public class WeChatService {
         if (msgCount == 0) {
             return;
         }
-
-        String sendMsg;
-        String jsonUser = redisService.get("WECHATUSER", String.class);
-        UserPO user = (UserPO) JSONObject.toBean(JSONObject.fromObject(jsonUser), UserPO.class);
-        String userName = user.getUserName();
-        String loginPageJson = redisService.get(WeChatUtil.LOGINPAGE, String.class);
-        LoginPagePO loginPagePO = (LoginPagePO) JSONObject
-            .toBean(JSONObject.fromObject(loginPageJson), LoginPagePO.class);
+        String userName = getUserName();
+        LoginPagePO loginPagePO = getLoginPage();
 
         List<AddMsgListPO> msgList = webWxSyncPO.getAddMsgList();
         for (AddMsgListPO addMsgListPO : msgList) {
@@ -125,86 +119,82 @@ public class WeChatService {
                         if ((!"".equals(memberPO.getNickName()) && content.contains("@" + memberPO.getNickName()))
                             || (!"".equals(memberPO.getDisplayName()) && content
                             .contains("@" + memberPO.getDisplayName()))) {
-
-                            if (content.contains("天气") && groupRobotIds.contains(1L)) {
-                                sendMsg = ApiUtil.getSimpleWeadther();
-                            } else if (content.contains("笑话") && groupRobotIds.contains(2L)) {
-                                sendMsg = ApiUtil.getRandJoke();
-                            } else if (content.contains("历史上的今天") && groupRobotIds.contains(3L)) {
-                                sendMsg = ApiUtil.getTodayHistory();
-                            } else if (content.contains("help")) {
-                                sendMsg = "支持指令：笑话、天气、历史上的今天";
-                            } else {
-                                sendMsg = "试试@我发送help获取指令吧~";
-                            }
-                            //发送
-                            SendMsgRequest sendMsgRequest = WeChatUtil
-                                .getSendMsgRequest(sendMsg, userName, addMsgListPO.getFromUserName());
-                            WeChatUtil.setSendMsg(loginPagePO, sendMsgRequest);
+                            //处理文本消息
+                            handleTextMsg(content, addMsgListPO.getFromUserName());
                         }
                     }
                 }
             } else if (addMsgListPO.getToUserName().equals("filehelper")) {
-                if (content.contains("天气")) {
-                    sendMsg = ApiUtil.getSimpleWeadther();
-                } else if (content.contains("笑话")) {
-                    sendMsg = ApiUtil.getRandJoke();
-                } else if (content.contains("历史上的今天")) {
-                    sendMsg = ApiUtil.getTodayHistory();
-                } else if (content.contains("help")) {
-                    sendMsg = "支持指令：笑话、天气、历史上的今天";
-                } else if (content.contains("会员号")) {
-                    sendMsg = elemeService.getVip();
-                    if (sendMsg != null) {
-                        sendMsg += "\n点击获取验证码后，给我发送手机号！";
-                        }
-                } else if (content.matches("^\\d{11}$")) {
-                    sendMsg = elemeService.getCode(content);
-                } else {
-                    return;
-                }
-                sendMsg += "\n                                                  -- 小俊";
-                //发送
-                SendMsgRequest sendMsgRequest = WeChatUtil
-                    .getSendMsgRequest(sendMsg, userName, addMsgListPO.getToUserName());
-                WeChatUtil.setSendMsg(loginPagePO, sendMsgRequest);
+                //处理文本消息
+                handleTextMsg(content, addMsgListPO.getToUserName());
             } else if (userName.equals(addMsgListPO.getFromUserName())) {
-                if (content.contains("天气")) {
-                    sendMsg = ApiUtil.getSimpleWeadther();
-                } else if (content.contains("笑话")) {
-                    sendMsg = ApiUtil.getRandJoke();
-                } else if (content.contains("历史上的今天")) {
-                    sendMsg = ApiUtil.getTodayHistory();
-                } else if (content.contains("help")) {
-                    sendMsg = "支持指令：笑话、天气、历史上的今天";
-                } else {
-                    return;
-                }
-                sendMsg += "\n                                                  -- 小俊";
-                //发送
-                SendMsgRequest sendMsgRequest = WeChatUtil
-                    .getSendMsgRequest(sendMsg, userName, addMsgListPO.getToUserName());
-                WeChatUtil.setSendMsg(loginPagePO, sendMsgRequest);
+                //处理文本消息
+                handleTextMsg(content, addMsgListPO.getToUserName());
             } else if (addMsgListPO.getFromUserName().contains("@")) {
-                if (content.contains("天气")) {
-                    sendMsg = ApiUtil.getSimpleWeadther();
-                } else if (content.contains("笑话")) {
-                    sendMsg = ApiUtil.getRandJoke();
-                } else if (content.contains("历史上的今天")) {
-                    sendMsg = ApiUtil.getTodayHistory();
-                } else if (content.contains("help")) {
-                    sendMsg = "支持指令：笑话、天气、历史上的今天";
-                } else {
-                    return;
-                }
-                sendMsg += "\n                                                  -- 小俊";
-
-                //发送
-                SendMsgRequest sendMsgRequest = WeChatUtil
-                    .getSendMsgRequest(sendMsg, userName, addMsgListPO.getFromUserName());
-                WeChatUtil.setSendMsg(loginPagePO, sendMsgRequest);
+                //处理文本消息
+                handleTextMsg(content, addMsgListPO.getFromUserName());
             }
         }
+    }
+
+    /**
+     * 处理基本文本指令
+     */
+    private void handleTextMsg(String content, String toUser) throws Exception {
+        LoginPagePO loginPage = getLoginPage();
+        String sendMsg;
+        if (content.contains("#天气")) {
+            sendMsg = ApiUtil.getSimpleWeadther();
+        } else if (content.contains("#笑话")) {
+            sendMsg = ApiUtil.getRandJoke();
+        } else if (content.contains("#历史上的今天")) {
+            sendMsg = ApiUtil.getTodayHistory();
+        } else if (content.contains("#help")) {
+            sendMsg = "支持指令：#笑话、#天气、#历史上的今天";
+        } else if (content.contains("#会员号")) {
+            //回复
+            sendMsg("正在获取手机号，请稍后", toUser, loginPage);
+            sendMsg = elemeService.getVip();
+            if (sendMsg != null) {
+                sendMsg += "\n点击获取验证码后，给我发送手机号！";
+            }
+        } else if (content.matches("^#\\d{11}$")) {
+            //回复
+            sendMsg("正在获取验证码，请稍后", toUser, loginPage);
+            sendMsg = elemeService.getCode(content);
+        } else {
+            return;
+        }
+        sendMsg += "\n                                                  -- 小俊";
+
+        //回复
+        sendMsg(sendMsg, toUser, loginPage);
+    }
+
+    /**
+     * 发送消息
+     */
+    private void sendMsg(String msg, String toUser, LoginPagePO loginPage) {
+        String userName = getUserName();
+        SendMsgRequest sendMsgRequest = WeChatUtil.getSendMsgRequest(msg, userName, toUser);
+        WeChatUtil.setSendMsg(loginPage, sendMsgRequest);
+    }
+
+    /**
+     * 获取登录uuid
+     */
+    private String getUserName() {
+        String jsonUser = redisService.get("WECHATUSER", String.class);
+        UserPO user = (UserPO) JSONObject.toBean(JSONObject.fromObject(jsonUser), UserPO.class);
+        return user.getUserName();
+    }
+
+    /**
+     * 获取登录LoginPage
+     */
+    private LoginPagePO getLoginPage() {
+        String loginPageJson = redisService.get(WeChatUtil.LOGINPAGE, String.class);
+        return (LoginPagePO) JSONObject.toBean(JSONObject.fromObject(loginPageJson), LoginPagePO.class);
     }
 
 }

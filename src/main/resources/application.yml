@@ -1,4 +1,7 @@
 spring:
+  #应用名
+  application:
+    name: wechat
   #redis
   redis:
     host: 192.168.1.168
@@ -42,3 +45,9 @@ logging:
 #端口
 server:
   port: 8054
+#nacos
+nacos:
+  config:
+    server-addr: 127.0.0.1:8048
+  discovery:
+    server-addr: 127.0.0.1:8048

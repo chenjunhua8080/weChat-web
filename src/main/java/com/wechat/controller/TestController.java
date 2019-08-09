@@ -1,5 +1,6 @@
 package com.wechat.controller;
 
+import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.wechat.global.GlobalConfig;
 import com.wechat.global.UserContext;
 import com.wechat.service.RedisService;
@@ -24,6 +25,15 @@ public class TestController {
     @GetMapping("/jenkins")
     public String jenkins() {
         return "jenkins 0727";
+    }
+
+
+    @NacosValue(value = "${name:null}", autoRefreshed = true)
+    private String name;
+
+    @GetMapping("/nacos")
+    public String nacos() {
+        return name;
     }
 
 }
