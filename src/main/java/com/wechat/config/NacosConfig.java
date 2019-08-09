@@ -5,8 +5,9 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingService;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
-//@Configuration
+@Configuration
 public class NacosConfig {
 
     @Value("${server.port}")
