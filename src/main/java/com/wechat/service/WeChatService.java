@@ -161,7 +161,7 @@ public class WeChatService {
         } else if (content.matches("^#\\d{11}$")) {
             //回复
             sendMsg("正在获取验证码，请稍后", toUser, loginPage);
-            sendMsg = elemeService.getCode(content);
+            sendMsg = elemeService.getCode(content.substring(1));
         } else {
             return;
         }

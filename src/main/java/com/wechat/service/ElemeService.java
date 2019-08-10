@@ -1,8 +1,6 @@
 package com.wechat.service;
 
 import com.wechat.util.HttpsUtil;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,9 +20,7 @@ public class ElemeService {
 
     public String getCode(String phone) {
         try {
-            Map<String, Object> map = new HashMap<>();
-            map.put("phone", phone);
-            return HttpsUtil.get(getCodeUrl, map);
+            return HttpsUtil.get(getCodeUrl.replace("PHONE", phone), null);
         } catch (Exception e) {
             e.printStackTrace();
         }
