@@ -16,12 +16,16 @@ import com.wechat.po.wechat.WebWxSyncPO;
 import com.wechat.request.SendMsgRequest;
 import com.wechat.util.ApiUtil;
 import com.wechat.util.WeChatUtil;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import net.sf.json.JSONObject;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
@@ -142,42 +146,58 @@ public class WeChatService {
      */
     private void handleTextMsg(String content, String toUser) throws Exception {
         LoginPagePO loginPage = getLoginPage();
-        String sendMsg;
-        if (content.contains("#天气")) {
-            sendMsg = ApiUtil.getSimpleWeadther();
-        } else if (content.contains("#笑话")) {
-            sendMsg = ApiUtil.getRandJoke();
-        } else if (content.contains("#历史上的今天")) {
-            sendMsg = ApiUtil.getTodayHistory();
-        } else if (content.contains("#help")) {
-            sendMsg = "支持指令：#笑话、#天气、#历史上的今天";
-        } else if (content.contains("#会员号")) {
+        String msgText;
+        if (content.equals("#天气")) {
+            msgText = ApiUtil.getSimpleWeadther();
+        } else if (content.equals("#笑话")) {
+            msgText = ApiUtil.getRandJoke();
+        } else if (content.equals("#今天")) {
+            msgText = ApiUtil.getTodayHistory();
+        } else if (content.equals("#help")) {
+            msgText = "支持指令：#笑话、#天气、#历史上的今天";
+        } else if (content.equals("#会员号")) {
             //回复
-            sendMsg("正在获取手机号，请稍后", toUser, loginPage);
-            sendMsg = elemeService.getVip();
-            if (sendMsg != null) {
-                sendMsg += "\n点击获取验证码后，给我发送手机号！";
+            sendMsg1("正在获取手机号，请稍后", toUser, loginPage);
+            msgText = elemeService.getVip();
+            if (msgText != null) {
+                msgText += "\n点击获取验证码后，给我发送手机号！";
             }
         } else if (content.matches("^#\\d{11}$")) {
             //回复
-            sendMsg("正在获取验证码，请稍后", toUser, loginPage);
-            sendMsg = elemeService.getCode(content.substring(1));
+            sendMsg1("正在获取验证码，请稍后", toUser, loginPage);
+            msgText = elemeService.getCode(content.substring(1));
+        } else if (content.equals("#图片")) {
+            //回复
+            sendMsg1("正在获取图片，请稍后", toUser, loginPage);
+            File file = new File("C:\\robot(9).jpg");
+            String mediaId = WeChatUtil.upload(loginPage, file);
+            sendMsg3(mediaId, toUser, loginPage);
+            return;
         } else {
             return;
         }
-        sendMsg += "\n                                                  -- 小俊";
+        msgText += "\n                                                  -- 小俊";
 
         //回复
-        sendMsg(sendMsg, toUser, loginPage);
+        sendMsg1(msgText, toUser, loginPage);
     }
 
     /**
-     * 发送消息
+     * 发送文本消息
      */
-    private void sendMsg(String msg, String toUser, LoginPagePO loginPage) {
+    private void sendMsg1(String msg, String toUser, LoginPagePO loginPage) {
         String userName = getUserName();
-        SendMsgRequest sendMsgRequest = WeChatUtil.getSendMsgRequest(msg, userName, toUser);
-        WeChatUtil.setSendMsg(loginPage, sendMsgRequest);
+        SendMsgRequest sendMsgRequest = WeChatUtil.getSendMsgRequest(1, msg, null, userName, toUser);
+        WeChatUtil.sendTextMsg(loginPage, sendMsgRequest);
+    }
+
+    /**
+     * 发送图片消息
+     */
+    private void sendMsg3(String mediaId, String toUser, LoginPagePO loginPage) {
+        String userName = getUserName();
+        SendMsgRequest sendMsgRequest = WeChatUtil.getSendMsgRequest(3, "", mediaId, userName, toUser);
+        WeChatUtil.sendImgMsg(loginPage, sendMsgRequest);
     }
 
     /**
@@ -195,6 +215,18 @@ public class WeChatService {
     private LoginPagePO getLoginPage() {
         String loginPageJson = redisService.get(WeChatUtil.LOGINPAGE, String.class);
         return (LoginPagePO) JSONObject.toBean(JSONObject.fromObject(loginPageJson), LoginPagePO.class);
+    }
+
+    public static void main(String[] args) throws IOException {
+        Part[] parts = new Part[10];
+        List<Part> list = new ArrayList<>();
+        list.add(new StringPart("a", "1"));
+        list.add(new StringPart("b", "2"));
+        list.add(new StringPart("c", "3"));
+        list.toArray(parts);
+        for (Part part : parts) {
+            System.out.println(part.toString());
+        }
     }
 
 }

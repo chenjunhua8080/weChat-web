@@ -21,6 +21,10 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 
 /**
  * 模拟发送请求-工具类
@@ -363,6 +367,67 @@ public class HttpsUtil {
 
         log.info("file --> {}", fileName);
         return file.getName();
+    }
+
+    /**
+     * 上传图片
+     */
+    public static String upload(String url, Map<String, String> headers, Map<String, Object> query,
+        Map<String, Object> body, File file) throws Exception {
+        log.info("url     --> {}", url);
+        log.info("query   --> {}", query == null ? null : query.toString());
+        log.info("body  --> {}", body == null ? null : body.toString());
+        log.info("headers  --> {}", headers == null ? null : headers.toString());
+        log.info("method  --> {}", "POST");
+        log.info("file  --> {}", file);
+
+        HttpClient client = new HttpClient();
+        PostMethod post = new PostMethod(url);
+
+        if (headers != null) {
+            for (String item : headers.keySet()) {
+                post.addRequestHeader(item, headers.get(item));
+            }
+        }
+
+        /**
+         * setQueryString自动编码导致ticket的‘@’改变，ret=1
+         */
+        if (query != null) {
+            NameValuePair[] params = new NameValuePair[query.size()];
+            List<String> list = new ArrayList<>(query.keySet());
+            for (int i = 0; i < list.size(); i++) {
+                String key = list.get(i);
+                NameValuePair nameValuePair = new NameValuePair(key, query.get(key).toString());
+                params[i] = nameValuePair;
+            }
+            post.setQueryString(params);
+        }
+
+        Part[] parts = null;
+
+        if (body != null) {
+            List<Part> list = new ArrayList<>();
+            list.add(new FilePart("filename", file));
+            for (String item : body.keySet()) {
+                list.add(new StringPart(item, body.get(item).toString()));
+            }
+            parts = new Part[list.size()];
+            parts = list.toArray(parts);
+        }
+
+        post.setRequestEntity(new MultipartRequestEntity(parts, post.getParams()));
+
+        client.executeMethod(post);
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(post.getResponseBodyAsStream(), "utf-8"));
+        String line;
+        StringBuilder sb = new StringBuilder();
+        while ((line = br.readLine()) != null) {
+            sb.append(line);
+        }
+        log.info("response  --> {}", sb);
+        return sb.toString();
     }
 
 }

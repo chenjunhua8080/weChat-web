@@ -301,7 +301,7 @@ public class UserController {
         if (loginPagePO == null) {
             return null;
         }
-        SendMsgResponse response = WeChatUtil.setSendMsg(loginPagePO, msgRequest);
+        SendMsgResponse response = WeChatUtil.sendTextMsg(loginPagePO, msgRequest);
         return response;
     }
 

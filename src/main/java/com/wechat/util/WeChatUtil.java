@@ -16,12 +16,15 @@ import com.wechat.po.wechat.SyncKeyItemPO;
 import com.wechat.po.wechat.SyncKeyPO;
 import com.wechat.po.wechat.WebWxSyncPO;
 import com.wechat.request.SendMsgRequest;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -115,7 +118,11 @@ public final class WeChatUtil {
      *
      * 17位时间戳
      */
-    private final static String sendMsg = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg";
+    private final static String sendTextMsg = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg";
+    /**
+     * ?fun=async&f=json&pass_ticket=Xe1ag%252Fg7%252FjeLNkQxF5S4x%252FJ0XwmgBWsTObblz5zC1l6yi3VqGPWZxKKmG03oxKRm
+     */
+    private final static String sendImgMsg = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsgimg";
 
 
     /**
@@ -125,6 +132,22 @@ public final class WeChatUtil {
      */
     private final static String chatRoom = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxupdatechatroom?fun=addmember&lang=zh_CN";
 
+    /**
+     * 上传文件POST 参数:f=json type: text/plain ---- result:{ "BaseResponse": { "Ret": 0, "ErrMsg": "" } ,
+     * "MediaId":"@crypt_133f8e05_5723c9ea7868f4d236f818cd7f0fa27efdc9ca018fbc36930caf99069cad9680bd38ab9c636e1ad5d048ba6a003c82f193c66460f97f0bb922d09134e1a7b5bbf40352ae0b80a34b72d8c9fbc31c3d753f7babe16d20cea53dac271bfaae1f40771d0e129b1e9271446baeeaadae8705823f1334aa4168d442ed62b80df12c95d0ec083cd3beb8f3d3ce9e39aa26e586ee57afc7eb63aedcd2a7dc5919a70d8cbcb7549534795f9bad20c7988d945041207c3d6002b14fc4f5c28cdcc18aa48ea06efe4600f37cea743dcc57201641b4b71f65d5a25a26faddce7da4a419fa99e7f09e961955062f186946b8b5bfc695e9487906fe2fbd15f8daabfe586999b41f2986bc05c824cf083ef2c80389447c1017a209ca9b39f5aafc5ba76fdb2971f34a44ca3fe9bd3dfdafaa6962695baef80adcba88def86cc1cff34daa1d336d",
+     * "StartPos": 7346, "CDNThumbImgHeight": 100, "CDNThumbImgWidth": 100, "EncryFileName":
+     * "20180213181717%5FXHkGm%2Ejpeg" }
+     */
+    private final static String webwxuploadmedia = "https://file.wx2.qq.com/cgi-bin/mmwebwx-bin/webwxuploadmedia";
+
+    /**
+     * 发送图片 参数：?fun=async&f=json&pass_ticket=EQb1FkLM55MlS0jeE6ctuh7fwopT9qizsAKij%252BLz%252FtEZMtiEbtl5ZMvdIZ3Dh5h1
+     * body:{"BaseRequest":{"Uin":3162028971,"Sid":"Ylc2ujBUMsyWNCJ9","Skey":"@crypt_253d2949_290d49c153b27e9f79972d1e3d24daa7","DeviceID":"e155869910696750"},
+     * "Msg":{"Type":3,"MediaId":"@22222","Content":"","FromUserName":"@aa3f7272db30d27fabcb924ec8eafc3e7e6aea992fa57c69701e7e4c30356db7","ToUserName":"filehelper","LocalID":"15658606819560821","ClientMsgId":"15658606819560821"},"Scene":0}
+     * result:{ "BaseResponse": { "Ret": 0, "ErrMsg": "" } , "MsgID": "209192978277204989",
+     * "LocalID":"15658606819560821" }
+     */
+    private final static String webwxsendmsgimg = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsgimg";
 
     /**
      * 微信字段转JsonBean时，处理的特殊大小写字段
@@ -588,25 +611,25 @@ public final class WeChatUtil {
         Map<String, Class> childClass = new HashMap<>();
         childClass.put("addMsgList", AddMsgListPO.class);
         childClass.put("list", SyncKeyItemPO.class);
-        WebWxSyncPO webWxSyncPO = (WebWxSyncPO) JsonUtil
-            .toBean(resp, WebWxSyncPO.class, ignoreLowercase, childClass);
+        WebWxSyncPO webWxSyncPO = (WebWxSyncPO) JsonUtil.toBean(resp, WebWxSyncPO.class, ignoreLowercase, childClass);
 
         return webWxSyncPO;
     }
 
-    public static SendMsgRequest getSendMsgRequest(String msg, String from, String to) {
+    public static SendMsgRequest getSendMsgRequest(int type, String content, String mediaId, String from, String to) {
         SendMsgRequest sendMsgRequest = new SendMsgRequest();
-        sendMsgRequest.setType(1);
-        sendMsgRequest.setContent(msg);
+        sendMsgRequest.setType(type);
+        sendMsgRequest.setContent(content);
+        sendMsgRequest.setMediaId(mediaId);
         sendMsgRequest.setFromUserName(from);
         sendMsgRequest.setToUserName(to);
         return sendMsgRequest;
     }
 
     /**
-     * 发送消息，单条，文本类型
+     * 发送文本消息
      */
-    public static SendMsgResponse setSendMsg(LoginPagePO loginPagePO, SendMsgRequest msgRequest) {
+    public static SendMsgResponse sendTextMsg(LoginPagePO loginPagePO, SendMsgRequest msgRequest) {
         Map<String, Object> query = new HashMap<>();
         query.put("lang", GlobalConfig.wechat_lang);
 
@@ -619,6 +642,9 @@ public final class WeChatUtil {
         baseRequest.put("Uin", loginPagePO.getWxUin());
 
         Map<String, Object> msgMap = new HashMap<>();
+        if (msgRequest.getType() == 3) {
+            msgMap.put("MediaId", msgRequest.getMediaId());
+        }
         msgMap.put("Type", msgRequest.getType());
         msgMap.put("Content", msgRequest.getContent());
         msgMap.put("FromUserName", msgRequest.getFromUserName());
@@ -639,7 +665,58 @@ public final class WeChatUtil {
 
         JSONObject resp = null;
         try {
-            resp = JSONObject.fromObject(HttpsUtil.post(sendMsg, query, body, headers));
+            resp = JSONObject.fromObject(HttpsUtil.post(sendTextMsg, query, body, headers));
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("发送消息，请求失败");
+        }
+
+        SendMsgResponse sendMsgResponse = (SendMsgResponse) JsonUtil
+            .toBean(resp, SendMsgResponse.class, ignoreLowercase, null);
+
+        return sendMsgResponse;
+    }
+
+    /**
+     * 发送图片消息
+     */
+    public static SendMsgResponse sendImgMsg(LoginPagePO loginPagePO, SendMsgRequest msgRequest) {
+        Map<String, Object> query = new HashMap<>();
+        query.put("fun", "async");
+        query.put("f", "json");
+        query.put("pass_ticket", loginPagePO.getPassTicket());
+
+        Map<String, Object> body = new HashMap<>();
+
+        Map<String, Object> baseRequest = new HashMap<>();
+        baseRequest.put("DeviceID", getDeviceId());
+        baseRequest.put("Sid", loginPagePO.getWxSid());
+        baseRequest.put("Skey", loginPagePO.getSKey());
+        baseRequest.put("Uin", loginPagePO.getWxUin());
+
+        Map<String, Object> msgMap = new HashMap<>();
+        msgMap.put("MediaId", msgRequest.getMediaId());
+        msgMap.put("Type", msgRequest.getType());
+        msgMap.put("Content", msgRequest.getContent());
+        msgMap.put("FromUserName", msgRequest.getFromUserName());
+        msgMap.put("ToUserName", msgRequest.getToUserName());
+        long currentTimeMillis = System.currentTimeMillis();
+        msgMap.put("LocalID", currentTimeMillis);
+        msgMap.put("ClientMsgId", currentTimeMillis);
+
+        body.put("BaseRequest", baseRequest);
+        body.put("Scene", 0);
+        body.put("Msg", msgMap);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("cookie",
+            "webwx_data_ticket=" + loginPagePO.getWebwx_data_ticket()
+                + ";wxuin=" + loginPagePO.getWxUin() + ";"
+                + ";wxsid=" + loginPagePO.getWxSid() + ";");
+
+        JSONObject resp = null;
+        try {
+            resp = JSONObject.fromObject(HttpsUtil.post(sendImgMsg, query, body, headers));
         } catch (Exception e) {
             e.printStackTrace();
             log.error("发送消息，请求失败");
@@ -703,6 +780,60 @@ public final class WeChatUtil {
             e.printStackTrace();
             log.error("退出登录异常");
         }
+    }
+
+    /**
+     * 上传图片
+     */
+    public static String upload(LoginPagePO loginPagePO, File file) {
+        Map<String, Object> query = new HashMap<>();
+        query.put("f", "json");
+
+        Map<String, Object> body = new HashMap<>();
+
+        Map<String, Object> baseRequest = new HashMap<>();
+        baseRequest.put("DeviceID", getDeviceId());
+        baseRequest.put("Sid", loginPagePO.getWxSid());
+        baseRequest.put("Skey", loginPagePO.getSKey());
+        baseRequest.put("Uin", loginPagePO.getWxUin());
+
+        Map<String, Object> uploadmediarequest = new HashMap<>();
+        uploadmediarequest.put("BaseRequest", baseRequest);
+        uploadmediarequest.put("UploadType", 2);
+        uploadmediarequest.put("ClientMediaId", System.currentTimeMillis());
+        uploadmediarequest.put("TotalLen", file.length());
+        uploadmediarequest.put("DataLen", file.length());
+        uploadmediarequest.put("StartPos", 0);
+        uploadmediarequest.put("MediaType", 4);
+        uploadmediarequest.put("FromUserName", null);
+        uploadmediarequest.put("ToUserName", "filehelper");
+        uploadmediarequest.put("FileMd5", UUID.randomUUID().toString().replaceAll("-", ""));
+
+        body.put("id", "WU_FILE_" + file.length());
+        body.put("name", file.getName());
+        body.put("type", "image/jpeg");
+        body.put("lastModifiedDate", new Date());
+        body.put("size", file.length());
+        body.put("mediatype", "pic");
+        body.put("uploadmediarequest", JSONObject.fromObject(uploadmediarequest));
+        body.put("webwx_data_ticket", loginPagePO.getWebwx_data_ticket());
+        body.put("pass_ticket", loginPagePO.getPassTicket());
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("cookie",
+            "webwx_data_ticket=" + loginPagePO.getWebwx_data_ticket()
+                + ";wxuin=" + loginPagePO.getWxUin() + ";"
+                + ";wxsid=" + loginPagePO.getWxSid() + ";");
+
+        try {
+            String result = HttpsUtil.upload(webwxuploadmedia, null, query, body, file);
+            JSONObject jsonObject = JSONObject.fromObject(result);
+            return jsonObject.getString("MediaId");
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("上传图片异常");
+        }
+        return null;
     }
 
 }
