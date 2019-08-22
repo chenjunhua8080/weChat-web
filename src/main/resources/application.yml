@@ -7,10 +7,6 @@ spring:
     nacos:
       discovery:
         server-addr: 192.168.1.168:8048
-      config:
-        server-addr: 192.168.1.168:8048
-        prefix: user
-        file-extension: yml
   #redis
   redis:
     host: 192.168.1.168
@@ -47,10 +43,11 @@ mybatis-plus:
       #主键类型  AUTO:"数据库ID自增", INPUT:"用户输入ID", ID_WORKER:"全局唯一ID (数字类型唯一ID)", UUID:"全局唯一ID UUID";
       id-type: auto
 #日志级别
-logging:
-  level:
-    org.apache.http.wire: error
-    org.apache.http.headers: error
+#加了会影响nacos的日志
+#logging:
+#  level:
+#    org.apache.http.wire: error
+#    org.apache.http.headers: error
 #端口
 server:
   port: 8054

@@ -1,7 +1,12 @@
 package com.wechat.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.wechat.po.NowPlayingPO;
 import com.wechat.util.HttpsUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 @Component
 public class CloudService {
@@ -27,4 +32,19 @@ public class CloudService {
         return null;
     }
 
+    @Autowired
+    private RestTemplate restTemplate;
+
+    public NowPlayingPO getNowPlaying() {
+        try {
+            String resp = restTemplate.getForObject("http://douban/getNowPlaying", String.class);
+            JSONArray jsonArray = JSONArray.parseArray(resp);
+            assert jsonArray != null;
+            JSONObject jsonObject = jsonArray.getJSONObject((int) (Math.random() * jsonArray.size()));
+            return jsonObject.toJavaObject(NowPlayingPO.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

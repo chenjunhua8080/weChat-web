@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.wechat.dao.GroupRobotDao;
 import com.wechat.dao.RobotDao;
 import com.wechat.po.GroupRobot;
+import com.wechat.po.NowPlayingPO;
 import com.wechat.po.Robot;
 import com.wechat.po.wechat.AddMsgListPO;
 import com.wechat.po.wechat.BatchContactPO;
@@ -15,6 +16,7 @@ import com.wechat.po.wechat.UserPO;
 import com.wechat.po.wechat.WebWxSyncPO;
 import com.wechat.request.SendMsgRequest;
 import com.wechat.util.ApiUtil;
+import com.wechat.util.HttpsUtil;
 import com.wechat.util.WeChatUtil;
 import java.io.File;
 import java.io.IOException;
@@ -176,7 +178,13 @@ public class WeChatService {
         } else if (content.equals("#电影推荐")) {
             //回复
             sendMsg1("正在查找，请稍后", toUser, loginPage);
-            File file = new File("C:\\robot(9).jpg");
+            NowPlayingPO nowPlaying = cloudService.getNowPlaying();
+            //发送文字
+            String movie = nowPlaying.getName() + "/" + nowPlaying.getScore() + "/" + nowPlaying.getActors();
+            sendMsg1(movie, toUser, loginPage);
+            //发送图片
+            String imgSrc = nowPlaying.getImg();
+            File file = HttpsUtil.downFile(imgSrc);
             String mediaId = WeChatUtil.upload(loginPage, file);
             sendMsg3(mediaId, toUser, loginPage);
             return;

@@ -369,6 +369,31 @@ public class HttpsUtil {
         return file.getName();
     }
 
+    public static File downFile(String url) throws Exception {
+
+        log.info("url       --> {}", url);
+        // 建立连接
+        HttpClient client = new HttpClient();
+        GetMethod get = new GetMethod(url);
+        client.executeMethod(get);
+        for (Header item : get.getResponseHeaders()) {
+            System.out.println(item);
+        }
+        InputStream in = get.getResponseBodyAsStream();
+        String fileName = UUID.randomUUID() + ".jpeg";
+        File file = new File(fileName);
+        OutputStream out = new FileOutputStream(file);
+        int line;
+        while ((line = in.read()) != -1) {
+            out.write(line);
+        }
+        out.close();
+        in.close();
+
+        log.info("file --> {}", fileName);
+        return file;
+    }
+
     /**
      * 上传图片
      */
