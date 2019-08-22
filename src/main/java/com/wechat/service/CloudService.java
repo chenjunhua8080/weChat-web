@@ -4,7 +4,7 @@ import com.wechat.util.HttpsUtil;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ElemeService {
+public class CloudService {
 
     private static final String getVipUrl = "http://127.0.0.1:8055/wx/getVip";
     private static final String getCodeUrl = "http://127.0.0.1:8055/wx/getCode?phone=PHONE";
@@ -26,4 +26,5 @@ public class ElemeService {
         }
         return null;
     }
+
 }

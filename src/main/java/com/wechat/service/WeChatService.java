@@ -35,7 +35,7 @@ public class WeChatService {
     RobotDao robotDao;
     GroupRobotDao groupRobotDao;
     RedisService redisService;
-    ElemeService elemeService;
+    CloudService cloudService;
 
     public void saveGroupRobot(List<Long> robotIds, String groupId) {
         UpdateWrapper<GroupRobot> update = Wrappers.update(new GroupRobot());
@@ -158,17 +158,24 @@ public class WeChatService {
         } else if (content.equals("#会员号")) {
             //回复
             sendMsg1("正在获取手机号，请稍后", toUser, loginPage);
-            msgText = elemeService.getVip();
+            msgText = cloudService.getVip();
             if (msgText != null) {
                 msgText += "\n点击获取验证码后，给我发送手机号！";
             }
         } else if (content.matches("^#\\d{11}$")) {
             //回复
             sendMsg1("正在获取验证码，请稍后", toUser, loginPage);
-            msgText = elemeService.getCode(content.substring(1));
-        } else if (content.equals("#图片")) {
+            msgText = cloudService.getCode(content.substring(1));
+        } else if (content.equals("#头像")) {
             //回复
             sendMsg1("正在获取图片，请稍后", toUser, loginPage);
+            File file = new File("C:\\robot(9).jpg");
+            String mediaId = WeChatUtil.upload(loginPage, file);
+            sendMsg3(mediaId, toUser, loginPage);
+            return;
+        } else if (content.equals("#电影推荐")) {
+            //回复
+            sendMsg1("正在查找，请稍后", toUser, loginPage);
             File file = new File("C:\\robot(9).jpg");
             String mediaId = WeChatUtil.upload(loginPage, file);
             sendMsg3(mediaId, toUser, loginPage);
