@@ -9,9 +9,7 @@ import com.wechat.po.GroupRobot;
 import com.wechat.po.NowPlayingPO;
 import com.wechat.po.Robot;
 import com.wechat.po.wechat.AddMsgListPO;
-import com.wechat.po.wechat.BatchContactPO;
 import com.wechat.po.wechat.LoginPagePO;
-import com.wechat.po.wechat.MemberPO;
 import com.wechat.po.wechat.UserPO;
 import com.wechat.po.wechat.WebWxSyncPO;
 import com.wechat.request.SendMsgRequest;
@@ -21,9 +19,7 @@ import com.wechat.util.WeChatUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.methods.multipart.Part;
@@ -96,47 +92,12 @@ public class WeChatService {
         for (AddMsgListPO addMsgListPO : msgList) {
             String content = addMsgListPO.getContent();
 
-            //如果消息来自于群聊：判断是否@我，是@我再进行处理
-            //个人消息直接处理
-            if (addMsgListPO.getFromUserName().contains("@@")) {
-
-                List<Map<String, String>> list = new ArrayList<>();
-                Map<String, String> map = new HashMap<>();
-                map.put("UserName", addMsgListPO.getFromUserName());
-                map.put("EncryChatRoomId", "");
-                list.add(map);
-
-                Map<String, Object> param = new HashMap<>();
-                param.put("pass_ticket", loginPagePO.getPassTicket());
-                param.put("wxsid", loginPagePO.getWxSid());
-                param.put("skey", loginPagePO.getSKey());
-                param.put("wxuin", loginPagePO.getWxUin());
-                param.put("count", list.size());
-                param.put("list", list);
-                //获取群聊详情
-                BatchContactPO batchContactPO = WeChatUtil.batchGetContact(param);
-
-                //获取群聊设置的机器
-                List<Long> groupRobotIds = getGroupRobotIds(addMsgListPO.getFromUserName());
-
-                List<MemberPO> memberList = batchContactPO.getContactList().get(0).getMemberList();
-                for (MemberPO memberPO : memberList) {
-                    if (memberPO.getUserName().equals(userName)) {
-                        if ((!"".equals(memberPO.getNickName()) && content.contains("@" + memberPO.getNickName()))
-                            || (!"".equals(memberPO.getDisplayName()) && content
-                            .contains("@" + memberPO.getDisplayName()))) {
-                            //处理文本消息
-                            handleTextMsg(content, addMsgListPO.getFromUserName());
-                        }
-                    }
-                }
-            } else if (addMsgListPO.getToUserName().equals("filehelper")) {
+            //已经加上识别符号#，可以直接处理消息
+            if ("filehelper".equals(addMsgListPO.getToUserName()) ||
+                userName.equals(addMsgListPO.getFromUserName())) {
                 //处理文本消息
                 handleTextMsg(content, addMsgListPO.getToUserName());
-            } else if (userName.equals(addMsgListPO.getFromUserName())) {
-                //处理文本消息
-                handleTextMsg(content, addMsgListPO.getToUserName());
-            } else if (addMsgListPO.getFromUserName().contains("@")) {
+            } else {
                 //处理文本消息
                 handleTextMsg(content, addMsgListPO.getFromUserName());
             }
