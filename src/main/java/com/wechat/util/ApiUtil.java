@@ -1,6 +1,7 @@
 package com.wechat.util;
 
 import com.wechat.po.QuestionBankPO;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import net.sf.json.JSONArray;
@@ -69,7 +70,7 @@ public class ApiUtil {
     }
 
     public static String getConstellation(String name) throws Exception {
-        String url = constellation.replace("NAME", name);
+        String url = constellation.replace("NAME", URLEncoder.encode(name,"utf-8"));
         JSONObject resp = JSONObject.fromObject(HttpsUtil.get(url, null));
         int errorCode = resp.getInt("error_code");
         String result = "";
