@@ -1,5 +1,6 @@
 package com.wechat.util;
 
+import com.wechat.po.QuestionBankPO;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import net.sf.json.JSONArray;
@@ -12,6 +13,10 @@ public class ApiUtil {
     public static final String rand_joke = "http://v.juhe.cn/joke/randJoke.php?key=938da9ec9cc43d7aebf5d28bfe91e68f";
 
     public static final String simple_weadther = "http://apis.juhe.cn/simpleWeather/query?city=%E5%B9%BF%E5%B7%9E&key=cb36aed6af10cfac7a20f9208c6ba14d";
+
+    public static final String constellation = "http://web.juhe.cn:8080/constellation/getAll?consName=NAME&type=week&key=eddce9423c555147abc43a740f299431";
+
+    public static final String question_bank = "http://v.juhe.cn/jztk/query?subject=1&model=c1&testType=&=&key=01b8d30914c2e0c78205b4775ab125dc";
 
     public static String getTodayHistory() throws Exception {
         SimpleDateFormat dateFormat = new SimpleDateFormat("M/d");
@@ -63,8 +68,32 @@ public class ApiUtil {
         return result;
     }
 
-    public static void main(String[] args) throws Exception {
-        System.out.println(getSimpleWeadther());
+    public static String getConstellation(String name) throws Exception {
+        String url = constellation.replace("NAME", name);
+        JSONObject resp = JSONObject.fromObject(HttpsUtil.get(url, null));
+        int errorCode = resp.getInt("error_code");
+        String result = "";
+        if (errorCode == 0) {
+            String love = resp.getString("love");
+            String money = resp.getString("money");
+            String work = resp.getString("work");
+            result = love + "\n" + money + "\n" + work;
+        } else {
+            result = resp.getString("reason");
+        }
+        return result;
+    }
+
+    public static QuestionBankPO getQuestionBank() throws Exception {
+        String url = question_bank;
+        JSONObject resp = JSONObject.fromObject(HttpsUtil.get(url, null));
+        int errorCode = resp.getInt("error_code");
+        if (errorCode == 0) {
+            JSONArray jsonArray = resp.getJSONArray("result");
+            JSONObject jsonObject = jsonArray.getJSONObject(0);
+            return (QuestionBankPO) JSONObject.toBean(jsonObject, QuestionBankPO.class);
+        }
+        return null;
     }
 
 }

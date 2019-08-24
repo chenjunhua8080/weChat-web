@@ -7,6 +7,7 @@ import com.wechat.dao.GroupRobotDao;
 import com.wechat.dao.RobotDao;
 import com.wechat.po.GroupRobot;
 import com.wechat.po.NowPlayingPO;
+import com.wechat.po.QuestionBankPO;
 import com.wechat.po.Robot;
 import com.wechat.po.wechat.AddMsgListPO;
 import com.wechat.po.wechat.LoginPagePO;
@@ -22,8 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import net.sf.json.JSONObject;
-import org.apache.commons.httpclient.methods.multipart.Part;
-import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
@@ -149,10 +148,34 @@ public class WeChatService {
             String mediaId = WeChatUtil.upload(loginPage, file);
             sendMsg3(mediaId, toUser, loginPage);
             return;
+        } else if (content.contains("#星座运势#")) {
+            String name = content.substring(content.lastIndexOf("#") + 1);
+            msgText = ApiUtil.getConstellation(name);
+        } else if (content.contains("#驾考试题")) {
+            QuestionBankPO questionBank = ApiUtil.getQuestionBank();
+            if (questionBank == null) {
+                msgText = "获取试题失败";
+            } else {
+                String url = questionBank.getUrl();
+                if (url != null) {
+                    File file = HttpsUtil.downFile(url);
+                    String mediaId = WeChatUtil.upload(loginPage, file);
+                    sendMsg3(mediaId, toUser, loginPage);
+                }
+                msgText = questionBank.getQuestion() + "\n";
+                msgText += "A：" + questionBank.getItem1() + "\n";
+                msgText += "B：" + questionBank.getItem2() + "\n";
+                if (questionBank.getItem3() != null && !questionBank.getItem3().equals("")) {
+                    msgText += "C：" + questionBank.getItem3() + "\n";
+                }
+                if (questionBank.getItem4() != null && !questionBank.getItem4().equals("")) {
+                    msgText += "D：" + questionBank.getItem4();
+                }
+            }
         } else {
             return;
         }
-        msgText += "\n                                                  -- 小俊";
+        msgText += "\n                                              -- 小尾巴";
 
         //回复
         sendMsg1(msgText, toUser, loginPage);
@@ -194,15 +217,9 @@ public class WeChatService {
     }
 
     public static void main(String[] args) throws IOException {
-        Part[] parts = new Part[10];
-        List<Part> list = new ArrayList<>();
-        list.add(new StringPart("a", "1"));
-        list.add(new StringPart("b", "2"));
-        list.add(new StringPart("c", "3"));
-        list.toArray(parts);
-        for (Part part : parts) {
-            System.out.println(part.toString());
-        }
+        String content = "#星座运势#白羊座";
+        String name = content.substring(content.lastIndexOf("#") + 1);
+        System.out.println(name);
     }
 
 }
