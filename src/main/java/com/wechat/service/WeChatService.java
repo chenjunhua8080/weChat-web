@@ -18,7 +18,6 @@ import com.wechat.util.ApiUtil;
 import com.wechat.util.HttpsUtil;
 import com.wechat.util.WeChatUtil;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -85,7 +84,6 @@ public class WeChatService {
             return;
         }
         String userName = getUserName();
-        LoginPagePO loginPagePO = getLoginPage();
 
         List<AddMsgListPO> msgList = webWxSyncPO.getAddMsgList();
         for (AddMsgListPO addMsgListPO : msgList) {
@@ -140,14 +138,25 @@ public class WeChatService {
             sendMsg1("正在查找，请稍后", toUser, loginPage);
             NowPlayingPO nowPlaying = cloudService.getNowPlaying();
             //发送文字
-            String movie = nowPlaying.getName() + "/" + nowPlaying.getScore() + "/" + nowPlaying.getActors();
-            sendMsg1(movie, toUser, loginPage);
+            String movieInfo = nowPlaying.getId() + "\n"
+                + nowPlaying.getName() + "/" + nowPlaying.getScore() + "/" + nowPlaying.getActors();
+            sendMsg1(movieInfo, toUser, loginPage);
+            String movieDesc = cloudService.getMovieDesc(nowPlaying.getId());
+            sendMsg1(movieDesc, toUser, loginPage);
             //发送图片
             String imgSrc = nowPlaying.getImg();
             File file = HttpsUtil.downFile(imgSrc);
             String mediaId = WeChatUtil.upload(loginPage, file);
             sendMsg3(mediaId, toUser, loginPage);
             return;
+        } else if (content.contains("#影评#")) {
+            String id = content.substring(content.lastIndexOf("#") + 1);
+            List<String> comments = cloudService.getComments(id, 0, 10);
+            StringBuilder msgTextBuilder = new StringBuilder();
+            for (String item : comments) {
+                msgTextBuilder.append(item).append("\n");
+            }
+            msgText = msgTextBuilder.toString();
         } else if (content.contains("#星座运势#")) {
             String name = content.substring(content.lastIndexOf("#") + 1);
             msgText = ApiUtil.getConstellation(name);
@@ -214,12 +223,6 @@ public class WeChatService {
     private LoginPagePO getLoginPage() {
         String loginPageJson = redisService.get(WeChatUtil.LOGINPAGE, String.class);
         return (LoginPagePO) JSONObject.toBean(JSONObject.fromObject(loginPageJson), LoginPagePO.class);
-    }
-
-    public static void main(String[] args) throws IOException {
-        String content = "#星座运势#白羊座";
-        String name = content.substring(content.lastIndexOf("#") + 1);
-        System.out.println(name);
     }
 
 }
