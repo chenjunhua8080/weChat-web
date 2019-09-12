@@ -1,4 +1,4 @@
-package com.wechat.global;
+package com.wechat.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

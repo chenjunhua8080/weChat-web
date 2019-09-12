@@ -1,5 +1,6 @@
 package com.wechat.util;
 
+import com.wechat.enums.AnswerEnum;
 import com.wechat.po.QuestionBankPO;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -18,6 +19,8 @@ public class ApiUtil {
     public static final String constellation = "http://web.juhe.cn:8080/constellation/getAll?consName=NAME&type=week&key=eddce9423c555147abc43a740f299431";
 
     public static final String question_bank = "http://v.juhe.cn/jztk/query?subject=1&model=c1&testType=&=&key=01b8d30914c2e0c78205b4775ab125dc";
+
+    public static final String question_answers = "http://v.juhe.cn/jztk/answers?key=01b8d30914c2e0c78205b4775ab125dc";
 
     public static String getTodayHistory() throws Exception {
         SimpleDateFormat dateFormat = new SimpleDateFormat("M/d");
@@ -70,7 +73,7 @@ public class ApiUtil {
     }
 
     public static String getConstellation(String name) throws Exception {
-        String url = constellation.replace("NAME", URLEncoder.encode(name,"utf-8"));
+        String url = constellation.replace("NAME", URLEncoder.encode(name, "utf-8"));
         JSONObject resp = JSONObject.fromObject(HttpsUtil.get(url, null));
         int errorCode = resp.getInt("error_code");
         String result = "";
@@ -92,7 +95,27 @@ public class ApiUtil {
         if (errorCode == 0) {
             JSONArray jsonArray = resp.getJSONArray("result");
             JSONObject jsonObject = jsonArray.getJSONObject(0);
+            String item3 = jsonObject.getString("item3");
+            String answer = jsonObject.getString("answer");
+            if (item3 == null || item3.equals("")) {
+                answer = AnswerEnum.getNameByCode(Integer.parseInt(answer));
+                answer = answer.substring(answer.length() - 2);
+            } else {
+                answer = AnswerEnum.getNameByCode(Integer.parseInt(answer));
+                answer = answer.substring(0, 1);
+            }
+            jsonObject.put("answer", answer);
             return (QuestionBankPO) JSONObject.toBean(jsonObject, QuestionBankPO.class);
+        }
+        return null;
+    }
+
+    public static JSONArray getQuestionAnswers() throws Exception {
+        String url = question_answers;
+        JSONObject resp = JSONObject.fromObject(HttpsUtil.get(url, null));
+        int errorCode = resp.getInt("error_code");
+        if (errorCode == 0) {
+            return resp.getJSONArray("result");
         }
         return null;
     }

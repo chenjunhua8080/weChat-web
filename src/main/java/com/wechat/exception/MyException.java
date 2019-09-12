@@ -1,6 +1,6 @@
 package com.wechat.exception;
 
-import com.wechat.global.ResultEnum;
+import com.wechat.enums.ResultEnum;
 import lombok.Data;
 
 @Data

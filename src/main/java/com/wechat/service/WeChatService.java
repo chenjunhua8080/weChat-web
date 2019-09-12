@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.wechat.dao.GroupRobotDao;
 import com.wechat.dao.RobotDao;
+import com.wechat.enums.ContentTypeEnum;
+import com.wechat.enums.FileTypeEnum;
+import com.wechat.enums.MediaTypeEnum;
 import com.wechat.po.GroupRobot;
 import com.wechat.po.NowPlayingPO;
 import com.wechat.po.QuestionBankPO;
@@ -130,7 +133,9 @@ public class WeChatService {
             //回复
             sendMsg1("正在获取图片，请稍后", toUser, loginPage);
             File file = new File("C:\\robot(9).jpg");
-            String mediaId = WeChatUtil.upload(loginPage, file);
+            String mediaId = WeChatUtil.upload(loginPage, file,
+                ContentTypeEnum.CONTENT_TYPE_JPEG.getName(),
+                MediaTypeEnum.MEDIA_TYPE_PIC.getName());
             sendMsg3(mediaId, toUser, loginPage);
             return;
         } else if (content.equals("#电影推荐")) {
@@ -145,8 +150,10 @@ public class WeChatService {
             sendMsg1(movieDesc, toUser, loginPage);
             //发送图片
             String imgSrc = nowPlaying.getImg();
-            File file = HttpsUtil.downFile(imgSrc);
-            String mediaId = WeChatUtil.upload(loginPage, file);
+            File file = HttpsUtil.downFile(imgSrc, FileTypeEnum.FILE_TYPE_JPEG.getName());
+            String mediaId = WeChatUtil.upload(loginPage, file,
+                ContentTypeEnum.CONTENT_TYPE_JPEG.getName(),
+                MediaTypeEnum.MEDIA_TYPE_PIC.getName());
             sendMsg3(mediaId, toUser, loginPage);
             return;
         } else if (content.contains("#影评#")) {
@@ -167,8 +174,10 @@ public class WeChatService {
             } else {
                 String url = questionBank.getUrl();
                 if (url != null) {
-                    File file = HttpsUtil.downFile(url);
-                    String mediaId = WeChatUtil.upload(loginPage, file);
+                    File file = HttpsUtil.downFile(url, FileTypeEnum.FILE_TYPE_JPEG.getName());
+                    String mediaId = WeChatUtil.upload(loginPage, file,
+                        ContentTypeEnum.CONTENT_TYPE_JPEG.getName(),
+                        MediaTypeEnum.MEDIA_TYPE_PIC.getName());
                     sendMsg3(mediaId, toUser, loginPage);
                 }
                 msgText = questionBank.getQuestion() + "\n";
@@ -180,6 +189,18 @@ public class WeChatService {
                 if (questionBank.getItem4() != null && !questionBank.getItem4().equals("")) {
                     msgText += "D：" + questionBank.getItem4();
                 }
+                //发送试题
+                sendMsg1(msgText, toUser, loginPage);
+                //发送倒计时
+                String imgSrc = "https://img-blog.csdnimg.cn/20190912113835841.gif";
+                File file = HttpsUtil.downFile(imgSrc, FileTypeEnum.FILE_TYPE_GIF.getName());
+                String mediaId = WeChatUtil.upload(loginPage, file,
+                    ContentTypeEnum.CONTENT_TYPE_GIF.getName(),
+                    MediaTypeEnum.MEDIA_TYPE_DOC.getName());
+                sendMsg47(mediaId, toUser, loginPage);
+                Thread.sleep(59000);
+                //答案
+                msgText = questionBank.getAnswer() + "\n" + questionBank.getExplains();
             }
         } else {
             return;
@@ -206,6 +227,15 @@ public class WeChatService {
         String userName = getUserName();
         SendMsgRequest sendMsgRequest = WeChatUtil.getSendMsgRequest(3, "", mediaId, userName, toUser);
         WeChatUtil.sendImgMsg(loginPage, sendMsgRequest);
+    }
+
+    /**
+     * 发送表情消息
+     */
+    private void sendMsg47(String mediaId, String toUser, LoginPagePO loginPage) {
+        String userName = getUserName();
+        SendMsgRequest sendMsgRequest = WeChatUtil.getSendMsgRequest(47, "", mediaId, userName, toUser);
+        WeChatUtil.sendEmoji(loginPage, sendMsgRequest);
     }
 
     /**

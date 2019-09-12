@@ -329,7 +329,7 @@ public class HttpsUtil {
      * @author cjh
      * @date 2019/5/7 15:41
      */
-    public static String downFile(String url, String downPath) throws Exception {
+    public static String downFileToPath(String url, String downPath) throws Exception {
 
         log.info("url       --> {}", url);
         log.info("downPath  --> {}", downPath);
@@ -369,7 +369,7 @@ public class HttpsUtil {
         return file.getName();
     }
 
-    public static File downFile(String url) throws Exception {
+    public static File downFile(String url, String fileType) throws Exception {
 
         log.info("url       --> {}", url);
         // 建立连接
@@ -380,7 +380,7 @@ public class HttpsUtil {
             System.out.println(item);
         }
         InputStream in = get.getResponseBodyAsStream();
-        String fileName = UUID.randomUUID() + ".jpeg";
+        String fileName = UUID.randomUUID() + "." + fileType;
         File file = new File(fileName);
         OutputStream out = new FileOutputStream(file);
         int line;

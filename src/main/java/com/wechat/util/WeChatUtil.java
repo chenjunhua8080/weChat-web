@@ -150,6 +150,16 @@ public final class WeChatUtil {
     private final static String webwxsendmsgimg = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsgimg";
 
     /**
+     * 发送表情 参数：?fun=async&f=json&pass_ticket=EQb1FkLM55MlS0jeE6ctuh7fwopT9qizsAKij%252BLz%252FtEZMtiEbtl5ZMvdIZ3Dh5h1 {
+     * "BaseRequest": { "Uin": 3162028971, "Sid": "Zh75lVx/qTuFBJFX", "Skey": "@crypt_253d2949_eaf1cc8eaffb76df419517b649ac19ac",
+     * "DeviceID": "e940837190721168" }, "Msg": { "Type": 47, "EmojiFlag": 2, "MediaId":
+     * "@crypt_f511bdc8_454e4c4a5b893e02fd0811b0d895a5a263187690bb1830100c2a5962f63ea969b30c14aef0d9652ef03c521a7d00d8d6cd1637a42baca53772495102dbcc92aeb3cf5d68af35a2843c053651e83a517059e181a60497809533bcc20a4dc96d5c70db8a06d0437c291f73242bb804f3a82bf388de82485d1646c8cbe8cf27221c684a9526c08ee669cfb658ab26fe99a678885bc96bb4b6ecf2e83700d5046b4b5efccc72c2250046a526e4356a20801ad14d2d56951f37e41f6ff3b001326cba99d361cfca996e3dce28a57ef706218b08b63d689cff9edca1da393659e93e02f8e1b9d3f1a8af925dbd1d5d7e78fc2588a7eb0c44c33aa850c2734cb6b092dd0eeb5b3d92c0014a0160580b905e47951d8d63131c3eda5e7d1cccb5d7a9a146d6ad0a10e69a1dda7d9dec35a27c48e3",
+     * "FromUserName": "@66dc48f47ea0a6a6d34c83915d8f4a9384eb6a5e62e82e34cc581c0bb62fe89b", "ToUserName": "filehelper",
+     * "LocalID": "15682670956170127", "ClientMsgId": "15682670956170127" }, "Scene": 0 }
+     */
+    private final static String webwxsendemoticon = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendemoticon";
+
+    /**
      * 微信字段转JsonBean时，处理的特殊大小写字段
      */
     public static String[] ignoreLowercase = {"MP", "PY"};
@@ -181,7 +191,7 @@ public final class WeChatUtil {
      * @return 图片名称
      */
     public static String getQrCode(String uuid) throws Exception {
-        String resp = HttpsUtil.downFile(qrCode.replace("UUID", uuid), "c://");
+        String resp = HttpsUtil.downFileToPath(qrCode.replace("UUID", uuid), "c://");
         return resp;
     }
 
@@ -728,6 +738,56 @@ public final class WeChatUtil {
         return sendMsgResponse;
     }
 
+    /**
+     * 发送表情消息
+     */
+    public static SendMsgResponse sendEmoji(LoginPagePO loginPagePO, SendMsgRequest msgRequest) {
+        Map<String, Object> query = new HashMap<>();
+        query.put("fun", "sys");
+        query.put("pass_ticket", loginPagePO.getPassTicket());
+
+        Map<String, Object> body = new HashMap<>();
+
+        Map<String, Object> baseRequest = new HashMap<>();
+        baseRequest.put("DeviceID", getDeviceId());
+        baseRequest.put("Sid", loginPagePO.getWxSid());
+        baseRequest.put("Skey", loginPagePO.getSKey());
+        baseRequest.put("Uin", loginPagePO.getWxUin());
+
+        Map<String, Object> msgMap = new HashMap<>();
+        msgMap.put("Type", msgRequest.getType());
+        msgMap.put("EmojiFlag", 2);
+        msgMap.put("MediaId", msgRequest.getMediaId());
+        msgMap.put("FromUserName", msgRequest.getFromUserName());
+        msgMap.put("ToUserName", msgRequest.getToUserName());
+        long currentTimeMillis = System.currentTimeMillis();
+        msgMap.put("LocalID", currentTimeMillis);
+        msgMap.put("ClientMsgId", currentTimeMillis);
+
+        body.put("BaseRequest", baseRequest);
+        body.put("Scene", 0);
+        body.put("Msg", msgMap);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("cookie",
+            "webwx_data_ticket=" + loginPagePO.getWebwx_data_ticket()
+                + ";wxuin=" + loginPagePO.getWxUin() + ";"
+                + ";wxsid=" + loginPagePO.getWxSid() + ";");
+
+        JSONObject resp = null;
+        try {
+            resp = JSONObject.fromObject(HttpsUtil.post(webwxsendemoticon, query, body, headers));
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("发送消息，请求失败");
+        }
+
+        SendMsgResponse sendMsgResponse = (SendMsgResponse) JsonUtil
+            .toBean(resp, SendMsgResponse.class, ignoreLowercase, null);
+
+        return sendMsgResponse;
+    }
+
     private static String getDeviceId() {
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
@@ -785,7 +845,7 @@ public final class WeChatUtil {
     /**
      * 上传图片
      */
-    public static String upload(LoginPagePO loginPagePO, File file) {
+    public static String upload(LoginPagePO loginPagePO, File file, String contentType, String mediaType) {
         Map<String, Object> query = new HashMap<>();
         query.put("f", "json");
 
@@ -811,10 +871,10 @@ public final class WeChatUtil {
 
         body.put("id", "WU_FILE_" + file.length());
         body.put("name", file.getName());
-        body.put("type", "image/jpeg");
+        body.put("type", contentType);
         body.put("lastModifiedDate", new Date());
         body.put("size", file.length());
-        body.put("mediatype", "pic");
+        body.put("mediatype", mediaType);
         body.put("uploadmediarequest", JSONObject.fromObject(uploadmediarequest));
         body.put("webwx_data_ticket", loginPagePO.getWebwx_data_ticket());
         body.put("pass_ticket", loginPagePO.getPassTicket());
