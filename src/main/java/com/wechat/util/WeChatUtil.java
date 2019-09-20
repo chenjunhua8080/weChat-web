@@ -160,6 +160,13 @@ public final class WeChatUtil {
     private final static String webwxsendemoticon = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendemoticon";
 
     /**
+     * 撤回 BaseRequest: {Uin: 3162028971, Sid: "L4xQ0XgvNcOG/0HI", Skey: "@crypt_253d2949_2a0979ee624fb39f47d0301c9c8d8146",…}
+     * ClientMsgId: "15689505630890709" SvrMsgId: "8539063435145434079" ToUserName:
+     * "@4147b603e76171ed8d759e0b03322445c6a6ff5c3f167d394c801db8764fbed3"
+     */
+    private final static String webwxrevokemsg = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxrevokemsg";
+
+    /**
      * 微信字段转JsonBean时，处理的特殊大小写字段
      */
     public static String[] ignoreLowercase = {"MP", "PY"};
@@ -167,6 +174,7 @@ public final class WeChatUtil {
      * 联系人为订阅号公众号等特殊标识
      */
     public static String[] mpKeyWord = {"gh_", "mcd"};
+
 
     /**
      * 1. 获取UUID（参考方法 getUUID） param : appid: wx782c26e4c19acffb redirect_uri: https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxnewloginpage
@@ -896,4 +904,39 @@ public final class WeChatUtil {
         return null;
     }
 
+    /**
+     * 撤回消息
+     */
+    public static void revokeMsg(String locationMsgId, String serviceMsgId, String toUser, LoginPagePO loginPagePO) {
+        Map<String, Object> query = new HashMap<>();
+        query.put("pass_ticket", loginPagePO.getPassTicket());
+
+        Map<String, Object> body = new HashMap<>();
+
+        Map<String, Object> baseRequest = new HashMap<>();
+        baseRequest.put("DeviceID", getDeviceId());
+        baseRequest.put("Sid", loginPagePO.getWxSid());
+        baseRequest.put("Skey", loginPagePO.getSKey());
+        baseRequest.put("Uin", loginPagePO.getWxUin());
+
+        body.put("BaseRequest", baseRequest);
+        body.put("ClientMsgId", locationMsgId);
+        body.put("SvrMsgId", serviceMsgId);
+        body.put("ToUserName", toUser);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("cookie",
+            "webwx_data_ticket=" + loginPagePO.getWebwx_data_ticket()
+                + ";wxuin=" + loginPagePO.getWxUin() + ";"
+                + ";wxsid=" + loginPagePO.getWxSid() + ";");
+
+        JSONObject resp;
+        try {
+            resp = JSONObject.fromObject(HttpsUtil.post(webwxrevokemsg, query, body, headers));
+            log.info(resp.getString("Introduction"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("撤回消息，请求失败");
+        }
+    }
 }

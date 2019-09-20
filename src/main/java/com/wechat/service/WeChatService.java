@@ -12,6 +12,7 @@ import com.wechat.po.GroupRobot;
 import com.wechat.po.NowPlayingPO;
 import com.wechat.po.QuestionBankPO;
 import com.wechat.po.Robot;
+import com.wechat.po.response.SendMsgResponse;
 import com.wechat.po.wechat.AddMsgListPO;
 import com.wechat.po.wechat.LoginPagePO;
 import com.wechat.po.wechat.UserPO;
@@ -167,7 +168,7 @@ public class WeChatService {
         } else if (content.contains("#星座运势#")) {
             String name = content.substring(content.lastIndexOf("#") + 1);
             msgText = ApiUtil.getConstellation(name);
-        } else if (content.contains("#驾考试题")) {
+        } else if (content.contains("#学车")) {
             QuestionBankPO questionBank = ApiUtil.getQuestionBank();
             if (questionBank == null) {
                 msgText = "获取试题失败";
@@ -197,8 +198,10 @@ public class WeChatService {
                 String mediaId = WeChatUtil.upload(loginPage, file,
                     ContentTypeEnum.CONTENT_TYPE_GIF.getName(),
                     MediaTypeEnum.MEDIA_TYPE_DOC.getName());
-                sendMsg47(mediaId, toUser, loginPage);
-                Thread.sleep(59000);
+                SendMsgResponse msgResponse = sendMsg47(mediaId, toUser, loginPage);
+                Thread.sleep(60000);
+                //撤回倒计时
+                revokeMsg(msgResponse.getLocalID(), msgResponse.getMsgID(), toUser);
                 //答案
                 msgText = questionBank.getAnswer() + "\n" + questionBank.getExplains();
             }
@@ -214,10 +217,10 @@ public class WeChatService {
     /**
      * 发送文本消息
      */
-    private void sendMsg1(String msg, String toUser, LoginPagePO loginPage) {
+    private SendMsgResponse sendMsg1(String msg, String toUser, LoginPagePO loginPage) {
         String userName = getUserName();
         SendMsgRequest sendMsgRequest = WeChatUtil.getSendMsgRequest(1, msg, null, userName, toUser);
-        WeChatUtil.sendTextMsg(loginPage, sendMsgRequest);
+        return WeChatUtil.sendTextMsg(loginPage, sendMsgRequest);
     }
 
     /**
@@ -232,10 +235,10 @@ public class WeChatService {
     /**
      * 发送表情消息
      */
-    private void sendMsg47(String mediaId, String toUser, LoginPagePO loginPage) {
+    private SendMsgResponse sendMsg47(String mediaId, String toUser, LoginPagePO loginPage) {
         String userName = getUserName();
         SendMsgRequest sendMsgRequest = WeChatUtil.getSendMsgRequest(47, "", mediaId, userName, toUser);
-        WeChatUtil.sendEmoji(loginPage, sendMsgRequest);
+        return WeChatUtil.sendEmoji(loginPage, sendMsgRequest);
     }
 
     /**
@@ -253,6 +256,16 @@ public class WeChatService {
     private LoginPagePO getLoginPage() {
         String loginPageJson = redisService.get(WeChatUtil.LOGINPAGE, String.class);
         return (LoginPagePO) JSONObject.toBean(JSONObject.fromObject(loginPageJson), LoginPagePO.class);
+    }
+
+    /**
+     * 撤回
+     */
+    private String revokeMsg(String locationMsgId, String serviceMsgId, String toUser) {
+        WeChatUtil.revokeMsg(locationMsgId, serviceMsgId, toUser, getLoginPage());
+        String jsonUser = redisService.get("WECHATUSER", String.class);
+        UserPO user = (UserPO) JSONObject.toBean(JSONObject.fromObject(jsonUser), UserPO.class);
+        return user.getUserName();
     }
 
 }
