@@ -59,13 +59,13 @@ public class WeChatService {
     private void handleTextMsg(String content, String toUser) throws Exception {
         LoginPagePO loginPage = getLoginPage();
         String msgText;
-        if (content.equals("#天气")) {
+        if (content.contains("#天气")) {
             msgText = ApiUtil.getSimpleWeadther();
-        } else if (content.equals("#笑话")) {
+        } else if (content.contains("#笑话")) {
             msgText = ApiUtil.getRandJoke();
-        } else if (content.equals("#今天")) {
+        } else if (content.contains("#今天")) {
             msgText = ApiUtil.getTodayHistory();
-        } else if (content.equals("#help")) {
+        } else if (content.contains("#help")) {
             msgText = "支持指令：#笑话、#天气、#历史上的今天";
         } else if (content.equals("#会员号")) {
             //回复
@@ -78,7 +78,7 @@ public class WeChatService {
             //回复
             sendMsg1("正在获取验证码，请稍后", toUser, loginPage);
             msgText = cloudService.getCode(content.substring(1));
-        } else if (content.equals("#头像")) {
+        } else if (content.contains("#头像")) {
             //回复
             sendMsg1("正在获取图片，请稍后", toUser, loginPage);
             File file = new File("C:\\robot(9).jpg");
@@ -87,7 +87,7 @@ public class WeChatService {
                 MediaTypeEnum.MEDIA_TYPE_PIC.getName());
             sendMsg3(mediaId, toUser, loginPage);
             return;
-        } else if (content.equals("#电影推荐")) {
+        } else if (content.contains("#电影推荐")) {
             //回复
             sendMsg1("正在查找，请稍后", toUser, loginPage);
             NowPlayingPO nowPlaying = cloudService.getNowPlaying();
