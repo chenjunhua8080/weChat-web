@@ -77,56 +77,13 @@
    */
   $(function () {
     login();
-    initRobotList();
   });
-
-  /**
-   * 初始化机器人列表
-   */
-  function initRobotList() {
-    $.get("/getRobotList", function (result) {
-      console.log(result);
-      if (result == null) {
-        alert("稍后再试");
-      }
-      let html = "";
-      for (let i in result) {
-        let robot = result[i];
-        html += "<input type='checkbox' name='robotIds' value='" + robot.id + "'>" + robot.name + "<br/>";
-      }
-      html = html + $('#robotList').html();
-      $('#robotList').html(html);
-    });
-  }
-
-  /**
-   * 设置群机器人
-   */
-  function addRobotToGroup() {
-    // let robotIds = $("input[name='robotIds']:checked").val();
-    let robotIds=[1,2,3];
-    let userName = $("input[name='userName']:checked").val();
-    $.ajax({
-      url: "/addRobotToGroup",
-      type: "POST",
-      contentType: 'application/json',//这个必须是这个格式
-      data: JSON.stringify({"robotIds": robotIds, "groupId": userName}),
-      success: function (result) {
-        if (result === "ok") {
-          alert("设置成功");
-        }
-      },
-      error: function (e) {
-        console.log(e);
-      }
-    });
-  }
 
   /**
    * 判断是否登录
    */
   function login() {
-    $.get("/isLogin", function (result) {
+    $.get("/wechat/isLogin", function (result) {
       if (result == null || result == "") {
         //未登录，获取二维码
         getQrCode();
@@ -143,7 +100,7 @@
    * 退出
    */
   function logout() {
-    $.get("/logout", function (result) {
+    $.get("/wechat/logout", function (result) {
       console.log("logout:" + result);
       if (result == null) {
         alert("稍后再试");
@@ -155,7 +112,7 @@
    * 免扫码登录
    */
   function notScanLogin() {
-    $.get("/notScanLogin", function (result) {
+    $.get("/wechat/notScanLogin", function (result) {
       if (result == null) {
         alert("稍后再试");
       } else {
@@ -171,7 +128,7 @@
    * 请求二维码
    */
   function getQrCode() {
-    $.get("/getQrCode", function (result) {
+    $.get("/wechat/getQrCode", function (result) {
       uuid = result.uuid;
       let userAvatar = result.userAvatar;
       if (userAvatar != null) {
@@ -199,7 +156,7 @@
   let repeat = true;
 
   function refreshStatus() {
-    let url = "/getLoginStatus/" + uuid;
+    let url = "/wechat/getLoginStatus/" + uuid;
     $.get(url, function (result) {
       let code = result.code;
       switch (code) {
@@ -235,7 +192,7 @@
    */
   function init() {
     $.ajax({
-      url: "/init",
+      url: "/wechat/init",
       type: "GET",
       success: function (result) {
         console.log(result);
@@ -261,7 +218,7 @@
    */
   function initContact() {
     $.ajax({
-      url: "/getContact",
+      url: "/wechat/getContact",
       type: "GET",
       success: function (result) {
         console.log(result);
@@ -372,7 +329,7 @@
    */
   function refreshMsg(syncList) {
     $.ajax({
-      url: "/refresh",
+      url: "/wechat/refresh",
       type: "POST",
       data: JSON.stringify(syncList),
       contentType: "application/json;charset-UTF-8",
@@ -614,7 +571,7 @@
   function getImgTag2(headImgUrl) {
     if (headImgUrl != null && headImgUrl != "") {
       headImgUrl = headImgUrl.replace('?', '&');
-      headImgUrl = "/getImg?prefix=" + headImgUrl;
+      headImgUrl = "/wechat/getImg?prefix=" + headImgUrl;
       return "<img class='msgImg' src='" + headImgUrl + "' />";
     } else {
       return "";
@@ -633,7 +590,7 @@
       }
       //发送
       $.ajax({
-        url: "/send",
+        url: "/wechat/send",
         type: "POST",
         data: {"type": 1, "content": content, "fromUserName": initObject.user.userName, "toUserName": userName},
         success: function (result) {
@@ -663,7 +620,6 @@
     <textarea id="text" style="width: 500px;height: 200px;"></textarea>
   </div>
   <div><input type="button" id="send" onclick="send()" value="发送"/></div>
-  <div id="robotList"><input type="button" id="addRobotToGroup" onclick="addRobotToGroup()" value="设置机器"/></div>
 </div>
 <h1 id="hello"></h1>
 <div id="session"></div>
