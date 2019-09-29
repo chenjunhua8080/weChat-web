@@ -147,11 +147,22 @@ public class WeChatService {
                     ContentTypeEnum.CONTENT_TYPE_GIF.getName(),
                     MediaTypeEnum.MEDIA_TYPE_DOC.getName());
                 SendMsgResponse msgResponse = sendMsg47(mediaId, toUser, loginPage);
-                Thread.sleep(60000);
-                //撤回倒计时
-                revokeMsg(msgResponse.getLocalID(), msgResponse.getMsgID(), toUser);
-                //答案
-                msgText = questionBank.getAnswer() + "\n" + questionBank.getExplains();
+                new Thread(
+                    () -> {
+                        try {
+                            Thread.sleep(60000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        //撤回倒计时
+                        revokeMsg(msgResponse.getLocalID(), msgResponse.getMsgID(), toUser);
+                        //答案
+                        String msg = questionBank.getAnswer() + "\n" + questionBank.getExplains();
+                        //回复
+                        sendMsg1(msg, toUser, loginPage);
+                    }
+                ).start();
+                return;
             }
         } else {
             return;
