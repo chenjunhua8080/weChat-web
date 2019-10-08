@@ -167,7 +167,7 @@ public class WeChatService {
         } else {
             return;
         }
-        msgText += "\n                                              -- 小尾巴";
+//        msgText += "\n                                              -- 小尾巴";
 
         //回复
         sendMsg1(msgText, toUser, loginPage);
