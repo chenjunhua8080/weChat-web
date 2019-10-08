@@ -81,7 +81,7 @@ public class ApiUtil {
             String love = resp.getString("love");
             String money = resp.getString("money");
             String work = resp.getString("work");
-            result = love + "\n" + money + "\n" + work;
+            result = name + "\n\n" + love + "\n\n" + money + "\n\n" + work;
         } else {
             result = resp.getString("reason");
         }
