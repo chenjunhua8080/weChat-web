@@ -51,5 +51,3 @@ mybatis-plus:
 #端口
 server:
   port: 8054
-  servlet:
-    context-path: /wechat

@@ -83,7 +83,7 @@
    * 判断是否登录
    */
   function login() {
-    $.get("/wechat/isLogin", function (result) {
+    $.get("/isLogin", function (result) {
       if (result == null || result == "") {
         //未登录，获取二维码
         getQrCode();
@@ -100,7 +100,7 @@
    * 退出
    */
   function logout() {
-    $.get("/wechat/logout", function (result) {
+    $.get("/logout", function (result) {
       console.log("logout:" + result);
       if (result == null) {
         alert("稍后再试");
@@ -112,7 +112,7 @@
    * 免扫码登录
    */
   function notScanLogin() {
-    $.get("/wechat/notScanLogin", function (result) {
+    $.get("/notScanLogin", function (result) {
       if (result == null) {
         alert("稍后再试");
       } else {
@@ -128,7 +128,7 @@
    * 请求二维码
    */
   function getQrCode() {
-    $.get("/wechat/getQrCode", function (result) {
+    $.get("/getQrCode", function (result) {
       uuid = result.uuid;
       let userAvatar = result.userAvatar;
       if (userAvatar != null) {
@@ -156,7 +156,7 @@
   let repeat = true;
 
   function refreshStatus() {
-    let url = "/wechat/getLoginStatus/" + uuid;
+    let url = "/getLoginStatus/" + uuid;
     $.get(url, function (result) {
       let code = result.code;
       switch (code) {
@@ -192,7 +192,7 @@
    */
   function init() {
     $.ajax({
-      url: "/wechat/init",
+      url: "/init",
       type: "GET",
       success: function (result) {
         console.log(result);
@@ -218,7 +218,7 @@
    */
   function initContact() {
     $.ajax({
-      url: "/wechat/getContact",
+      url: "/getContact",
       type: "GET",
       success: function (result) {
         console.log(result);
@@ -329,7 +329,7 @@
    */
   function refreshMsg(syncList) {
     $.ajax({
-      url: "/wechat/refresh",
+      url: "/refresh",
       type: "POST",
       data: JSON.stringify(syncList),
       contentType: "application/json;charset-UTF-8",
@@ -571,7 +571,7 @@
   function getImgTag2(headImgUrl) {
     if (headImgUrl != null && headImgUrl != "") {
       headImgUrl = headImgUrl.replace('?', '&');
-      headImgUrl = "/wechat/getImg?prefix=" + headImgUrl;
+      headImgUrl = "/getImg?prefix=" + headImgUrl;
       return "<img class='msgImg' src='" + headImgUrl + "' />";
     } else {
       return "";
@@ -590,7 +590,7 @@
       }
       //发送
       $.ajax({
-        url: "/wechat/send",
+        url: "/send",
         type: "POST",
         data: {"type": 1, "content": content, "fromUserName": initObject.user.userName, "toUserName": userName},
         success: function (result) {
