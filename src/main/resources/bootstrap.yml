@@ -1,21 +1,21 @@
-#¶Ë¿Ú
+#ç«¯å£
 server:
   port: 8054
 spring:
-  #Ó¦ÓÃÃû
+  #åº”ç”¨å
   application:
     name: wechat
-  #Ä¬ÈÏ»·¾³dev
+  #é»˜è®¤ç¯å¢ƒdev
   profiles:
     active: dev
   cloud:
-    #ÅäÖÃÖĞĞÄ
+    #é…ç½®ä¸­å¿ƒ
     nacos:
       config:
         server-addr: 127.0.0.1:8048
         group: ${spring.application.name}
         file-extension: yml
-        #¹«¹²µÄÅäÖÃÎÄ¼ş
+        #å…¬å…±çš„é…ç½®æ–‡ä»¶
         ext-config:
           - data-id: base.yml
             group: DEFAULT_GROUP
