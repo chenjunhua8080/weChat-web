@@ -1,18 +1,4 @@
 spring:
-  #应用名
-  application:
-    name: wechat
-  #nacos
-  cloud:
-    nacos:
-      discovery:
-        server-addr: 127.0.0.1:8048
-  #redis
-  redis:
-    host: 127.0.0.1
-    port: 6379
-    password:
-    database: 0
   #数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -48,6 +34,3 @@ mybatis-plus:
 #  level:
 #    org.apache.http.wire: error
 #    org.apache.http.headers: error
-#端口
-server:
-  port: 8054

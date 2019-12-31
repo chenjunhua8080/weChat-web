@@ -1,0 +1,22 @@
+#端口
+server:
+  port: 8054
+spring:
+  #应用名
+  application:
+    name: wechat
+  #默认环境dev
+  profiles:
+    active: dev
+  cloud:
+    #配置中心
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8048
+        group: ${spring.application.name}
+        file-extension: yml
+        #公共的配置文件
+        ext-config:
+          - data-id: base.yml
+            group: DEFAULT_GROUP
+            refresh: true
