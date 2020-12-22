@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 public class WeChatService {
 
     private static Map<String, List<QuestionBankPO>> userQuestionList = new HashMap<>();
+    private static Map<String, SendMsgResponse> userQuestionRollBackId = new HashMap<>();
     private static Map<String, Integer> userQuestionIndex = new HashMap<>();
     private static Map<String, Integer> userQuestionScore = new HashMap<>();
     private static Map<String, ScheduledExecutorService> userQuestionThread = new HashMap<>();
@@ -161,6 +162,9 @@ public class WeChatService {
             userQuestionList.remove(toUser);
             userQuestionIndex.remove(toUser);
             redisService.delete("car1:" + toUser);
+            SendMsgResponse msgResponse = userQuestionRollBackId.get(toUser);
+            userQuestionRollBackId.remove(toUser);
+            revokeMsg(msgResponse.getLocalID(), msgResponse.getMsgID(), toUser);
             sendMsg1("已退出", toUser, loginPage);
             return;
         } else if ("ABCD".contains(content)) {
@@ -235,10 +239,6 @@ public class WeChatService {
         }
         //暂存当前题目
         redisService.set("car1:" + toUser, i);
-        Integer thisQuestionId = redisService.get("car1:" + toUser, Integer.class);
-        if (i.equals(thisQuestionId)) {
-            return;
-        }
 
         String msgText;
         QuestionBankPO questionBank = questionBankList.get(i);
@@ -268,6 +268,7 @@ public class WeChatService {
             ContentTypeEnum.CONTENT_TYPE_GIF.getName(),
             MediaTypeEnum.MEDIA_TYPE_DOC.getName());
         SendMsgResponse msgResponse = sendMsg47(mediaId, toUser, loginPage);
+        userQuestionRollBackId.put(toUser, msgResponse);
 
         ScheduledExecutorService scheduledExecutorService = userQuestionThread.get(toUser);
         Integer finalI = i;
