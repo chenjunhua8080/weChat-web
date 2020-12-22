@@ -127,7 +127,7 @@ public class WeChatService {
         } else if (content.contains("#星座运势#")) {
             String name = content.substring(content.lastIndexOf("#") + 1);
             msgText = ApiUtil.getConstellation(name);
-        } else if (content.contains("#刷题模式")) {
+        } else if (content.equals("刷题模式")) {
             List<QuestionBankPO> questionBankList = ApiUtil.getQuestionBankList();
             if (questionBankList == null) {
                 msgText = "获取试题失败";
@@ -135,7 +135,7 @@ public class WeChatService {
                 if (userQuestionThread.get(toUser) != null) {
                     sendMsg1("重新开始", toUser, loginPage);
                 }
-                sendMsg1("开始刷题，回复[#退出刷题模式]即可退出！", toUser, loginPage);
+                sendMsg1("开始刷题，回复[退出刷题模式]即可退出！", toUser, loginPage);
                 //把用户刷题信息添加到map保存
                 ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(4);
                 userQuestionThread.put(toUser, scheduledExecutorService);
@@ -153,16 +153,23 @@ public class WeChatService {
             //回复
             sendMsg1(msgText, toUser, loginPage);
             return;
-        } else if (content.contains("#退出刷题模式")) {
+        } else if (content.equals("退出刷题模式")) {
             ScheduledExecutorService scheduledExecutorService = userQuestionThread.get(toUser);
             scheduledExecutorService.shutdownNow();
             userQuestionThread.remove(toUser);
             userQuestionList.remove(toUser);
+            redisService.delete("car1:" + toUser);
             sendMsg1("已退出", toUser, loginPage);
             return;
         } else if ("ABCD".contains(content)) {
             Integer i = redisService.get("car1:" + toUser, Integer.class);
+            if (i == null) {
+                return;
+            }
             List<QuestionBankPO> list = userQuestionList.get(toUser);
+            if (list == null) {
+                return;
+            }
             QuestionBankPO questionBank = list.get(i);
             boolean bingo = content.equals(questionBank.getAnswer());
             //积分
@@ -189,6 +196,7 @@ public class WeChatService {
                 scheduledExecutorService.shutdownNow();
                 userQuestionThread.remove(toUser);
                 userQuestionList.remove(toUser);
+                redisService.delete("car1:" + toUser);
                 Integer score = userQuestionScore.get(toUser);
                 sendMsg1("刷题结束~ 得分：" + score, toUser, loginPage);
             } else {
@@ -277,6 +285,7 @@ public class WeChatService {
                     scheduledExecutorService.shutdownNow();
                     userQuestionThread.remove(toUser);
                     userQuestionList.remove(toUser);
+                    redisService.delete("car1:" + toUser);
                     sendMsg1("刷题结束~", toUser, loginPage);
                 } else {
                     //下一题
