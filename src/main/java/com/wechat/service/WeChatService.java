@@ -172,7 +172,8 @@ public class WeChatService {
             Integer score = userQuestionScore.get(toUser);
             sendMsg1("已退出，得分：" + score, toUser, loginPage);
             return;
-        } else if ("ABCD".contains(content)) {
+        } else if ("ABCD".contains(content.toUpperCase())) {
+            content = content.toUpperCase();
             List<QuestionBankPO> list = userQuestionList.get(toUser);
             if (list == null) {
                 return;
