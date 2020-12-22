@@ -144,6 +144,7 @@ public class WeChatService {
                 //立即执行，随后60秒执行一次
                 scheduledExecutorService.scheduleAtFixedRate(() -> {
                     //发送问题
+                    System.out.println("尝试发送试题...");
                     SendQuestion(toUser, loginPage, questionBankList);
                 }, 0, 1, TimeUnit.SECONDS);
 
@@ -153,11 +154,12 @@ public class WeChatService {
             sendMsg1(msgText, toUser, loginPage);
             return;
         } else if (content.contains("#退出刷题模式")) {
-            ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(4);
+            ScheduledExecutorService scheduledExecutorService = userQuestionThread.get(toUser);
             scheduledExecutorService.shutdownNow();
             userQuestionThread.remove(toUser);
             userQuestionList.remove(toUser);
             sendMsg1("已退出", toUser, loginPage);
+            return;
         } else if ("ABCD".contains(content)) {
             Integer i = redisService.get("car1:" + toUser, Integer.class);
             List<QuestionBankPO> list = userQuestionList.get(toUser);
@@ -193,6 +195,7 @@ public class WeChatService {
                 //下一题
                 redisService.set("car1:" + toUser, i + 1);
             }
+            return;
         } else {
             return;
         }
