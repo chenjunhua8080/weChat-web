@@ -215,6 +215,7 @@ public class WeChatService {
                 revokeMsg(msgResponse.getLocalID(), msgResponse.getMsgID(), toUser);
                 //下一题
                 int next = i + 1;
+                System.out.printf("当前第%s题，下一题是%s", i, next);
                 userQuestionIndex.put(toUser, next);
             }
             return;
@@ -307,6 +308,7 @@ public class WeChatService {
                 } else {
                     //下一题
                     int next = finalI + 1;
+                    System.out.printf("当前第%s题，下一题是%s", finalI, next);
                     userQuestionIndex.put(toUser, next);
                 }
             }, 60, TimeUnit.SECONDS
