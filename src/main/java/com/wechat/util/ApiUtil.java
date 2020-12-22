@@ -5,6 +5,7 @@ import com.wechat.po.QuestionBankPO;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -88,24 +89,36 @@ public class ApiUtil {
         return result;
     }
 
-    public static QuestionBankPO getQuestionBank() throws Exception {
+    public static List<QuestionBankPO> getQuestionBankList() throws Exception {
         String url = question_bank;
         JSONObject resp = JSONObject.fromObject(HttpsUtil.get(url, null));
         int errorCode = resp.getInt("error_code");
         if (errorCode == 0) {
             JSONArray jsonArray = resp.getJSONArray("result");
-            JSONObject jsonObject = jsonArray.getJSONObject(0);
-            String item3 = jsonObject.getString("item3");
-            String answer = jsonObject.getString("answer");
-            if (item3 == null || item3.equals("")) {
-                answer = AnswerEnum.getNameByCode(Integer.parseInt(answer));
-                answer = answer.substring(answer.length() - 2);
-            } else {
-                answer = AnswerEnum.getNameByCode(Integer.parseInt(answer));
-                answer = answer.substring(0, 1);
+            for (Object item : jsonArray) {
+                JSONObject jsonObject = (JSONObject) item;
+                String item1 = jsonObject.getString("item1");
+                String answer = jsonObject.getString("answer");
+                if (item1 == null || item1.equals("")) {
+                    //判断题
+                    answer = AnswerEnum.getNameByCode(Integer.parseInt(answer));
+                    answer = answer.substring(answer.length() - 2);
+                } else {
+                    answer = AnswerEnum.getNameByCode(Integer.parseInt(answer));
+                    answer = answer.substring(0, 1);
+                }
+                //设置答案选项
+                jsonObject.put("answer", answer);
             }
-            jsonObject.put("answer", answer);
-            return (QuestionBankPO) JSONObject.toBean(jsonObject, QuestionBankPO.class);
+            return com.alibaba.fastjson.JSONObject.parseArray(jsonArray.toString(), QuestionBankPO.class);
+        }
+        return null;
+    }
+
+    public static QuestionBankPO getQuestionBank() throws Exception {
+        List<QuestionBankPO> questionBankList = getQuestionBankList();
+        if (questionBankList != null) {
+            return questionBankList.get(0);
         }
         return null;
     }

@@ -15,17 +15,28 @@ import com.wechat.util.ApiUtil;
 import com.wechat.util.HttpsUtil;
 import com.wechat.util.WeChatUtil;
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
-import lombok.AllArgsConstructor;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import lombok.SneakyThrows;
 import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@AllArgsConstructor
 @Component
 public class WeChatService {
 
-    RedisService redisService;
-    CloudService cloudService;
+    private static Map<String, List<QuestionBankPO>> userQuestionList = new HashMap<>();
+    private static Map<String, Integer> userQuestionIndex = new HashMap<>();
+    private static Map<String, Integer> userQuestionScore = new HashMap<>();
+    private static Map<String, ScheduledExecutorService> userQuestionThread = new HashMap<>();
+    @Autowired
+    private RedisService redisService;
+    @Autowired
+    private CloudService cloudService;
 
     /**
      * 处理消息
@@ -58,7 +69,7 @@ public class WeChatService {
      */
     private void handleTextMsg(String content, String toUser) throws Exception {
         LoginPagePO loginPage = getLoginPage();
-        String msgText;
+        String msgText = null;
         if (content.contains("#天气")) {
             msgText = ApiUtil.getSimpleWeadther();
         } else if (content.contains("#笑话")) {
@@ -116,53 +127,71 @@ public class WeChatService {
         } else if (content.contains("#星座运势#")) {
             String name = content.substring(content.lastIndexOf("#") + 1);
             msgText = ApiUtil.getConstellation(name);
-        } else if (content.contains("#学车")) {
-            QuestionBankPO questionBank = ApiUtil.getQuestionBank();
-            if (questionBank == null) {
+        } else if (content.contains("#刷题模式")) {
+            List<QuestionBankPO> questionBankList = ApiUtil.getQuestionBankList();
+            if (questionBankList == null) {
                 msgText = "获取试题失败";
             } else {
-                String url = questionBank.getUrl();
-                if (url != null) {
-                    File file = HttpsUtil.downFile(url, FileTypeEnum.FILE_TYPE_JPEG.getName());
-                    String mediaId = WeChatUtil.upload(loginPage, file,
-                        ContentTypeEnum.CONTENT_TYPE_JPEG.getName(),
-                        MediaTypeEnum.MEDIA_TYPE_PIC.getName());
-                    sendMsg3(mediaId, toUser, loginPage);
+                if (userQuestionThread.get(toUser) != null) {
+                    sendMsg1("重新开始", toUser, loginPage);
                 }
-                msgText = questionBank.getQuestion() + "\n";
-                msgText += "A：" + questionBank.getItem1() + "\n";
-                msgText += "B：" + questionBank.getItem2() + "\n";
-                if (questionBank.getItem3() != null && !questionBank.getItem3().equals("")) {
-                    msgText += "C：" + questionBank.getItem3() + "\n";
-                }
-                if (questionBank.getItem4() != null && !questionBank.getItem4().equals("")) {
-                    msgText += "D：" + questionBank.getItem4();
-                }
-                //发送试题
-                sendMsg1(msgText, toUser, loginPage);
-                //发送倒计时
-                String imgSrc = "https://img-blog.csdnimg.cn/20190912113835841.gif";
-                File file = HttpsUtil.downFile(imgSrc, FileTypeEnum.FILE_TYPE_GIF.getName());
-                String mediaId = WeChatUtil.upload(loginPage, file,
-                    ContentTypeEnum.CONTENT_TYPE_GIF.getName(),
-                    MediaTypeEnum.MEDIA_TYPE_DOC.getName());
-                SendMsgResponse msgResponse = sendMsg47(mediaId, toUser, loginPage);
-                new Thread(
-                    () -> {
-                        try {
-                            Thread.sleep(60000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        //撤回倒计时
-                        revokeMsg(msgResponse.getLocalID(), msgResponse.getMsgID(), toUser);
-                        //答案
-                        String msg = questionBank.getAnswer() + "\n" + questionBank.getExplains();
-                        //回复
-                        sendMsg1(msg, toUser, loginPage);
-                    }
-                ).start();
+                sendMsg1("开始刷题，回复[#退出刷题模式]即可退出！", toUser, loginPage);
+                //把用户刷题信息添加到map保存
+                ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(4);
+                userQuestionThread.put(toUser, scheduledExecutorService);
+                userQuestionList.put(toUser, questionBankList);
+
+                //立即执行，随后60秒执行一次
+                scheduledExecutorService.scheduleAtFixedRate(() -> {
+                    //发送问题
+                    SendQuestion(toUser, loginPage, questionBankList);
+                }, 0, 1, TimeUnit.SECONDS);
+
                 return;
+            }
+            //回复
+            sendMsg1(msgText, toUser, loginPage);
+            return;
+        } else if (content.contains("#退出刷题模式")) {
+            ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(4);
+            scheduledExecutorService.shutdownNow();
+            userQuestionThread.remove(toUser);
+            userQuestionList.remove(toUser);
+            sendMsg1("已退出", toUser, loginPage);
+        } else if ("ABCD".contains(content)) {
+            Integer i = redisService.get("car1:" + toUser, Integer.class);
+            List<QuestionBankPO> list = userQuestionList.get(toUser);
+            QuestionBankPO questionBank = list.get(i);
+            boolean bingo = content.equals(questionBank.getAnswer());
+            //积分
+            if (bingo) {
+                Integer score = userQuestionScore.get(toUser);
+                if (score == null) {
+                    userQuestionScore.put(toUser, 0);
+                } else {
+                    userQuestionScore.put(toUser, score + 1);
+                }
+            }
+            //回复答案
+            String msg =
+                "回答" + (bingo ? "正确！" : "错误！")
+                    + "\n"
+                    + questionBank.getAnswer()
+                    + "\n"
+                    + questionBank.getExplains();
+            sendMsg1(msg, toUser, loginPage);
+
+            //100道题，刷题结束
+            if (i == 100) {
+                ScheduledExecutorService scheduledExecutorService = userQuestionThread.get(toUser);
+                scheduledExecutorService.shutdownNow();
+                userQuestionThread.remove(toUser);
+                userQuestionList.remove(toUser);
+                Integer score = userQuestionScore.get(toUser);
+                sendMsg1("刷题结束~ 得分：" + score, toUser, loginPage);
+            } else {
+                //下一题
+                redisService.set("car1:" + toUser, i + 1);
             }
         } else {
             return;
@@ -171,6 +200,87 @@ public class WeChatService {
 
         //回复
         sendMsg1(msgText, toUser, loginPage);
+    }
+
+    /**
+     * 学车发送问题
+     *
+     * @param toUser           发给谁
+     * @param loginPage        登录信息
+     * @param questionBankList 题库
+     */
+    @SneakyThrows
+    private void SendQuestion(String toUser, LoginPagePO loginPage, List<QuestionBankPO> questionBankList) {
+        Integer i = userQuestionIndex.get(toUser);
+        if (i == null) {
+            i = 0;
+        }
+        Integer thisQuestionId = redisService.get("car1:" + toUser, Integer.class);
+        if (i.equals(thisQuestionId)) {
+            return;
+        }
+
+        String msgText;
+        QuestionBankPO questionBank = questionBankList.get(i);
+        //暂存当前题目
+        redisService.set("car1:" + toUser, i, 60);
+
+        String url = questionBank.getUrl();
+        if (url != null) {
+            File file = HttpsUtil.downFile(url, FileTypeEnum.FILE_TYPE_JPEG.getName());
+            String mediaId = WeChatUtil.upload(loginPage, file,
+                ContentTypeEnum.CONTENT_TYPE_JPEG.getName(),
+                MediaTypeEnum.MEDIA_TYPE_PIC.getName());
+            sendMsg3(mediaId, toUser, loginPage);
+        }
+        msgText = questionBank.getQuestion() + "\n";
+        msgText += "A：" + questionBank.getItem1() + "\n";
+        msgText += "B：" + questionBank.getItem2() + "\n";
+        if (questionBank.getItem3() != null && !questionBank.getItem3().equals("")) {
+            msgText += "C：" + questionBank.getItem3() + "\n";
+        }
+        if (questionBank.getItem4() != null && !questionBank.getItem4().equals("")) {
+            msgText += "D：" + questionBank.getItem4();
+        }
+        //发送试题
+        sendMsg1(msgText, toUser, loginPage);
+        //发送倒计时
+        String imgSrc = "https://img-blog.csdnimg.cn/20190912113835841.gif";
+        File file = HttpsUtil.downFile(imgSrc, FileTypeEnum.FILE_TYPE_GIF.getName());
+        String mediaId = WeChatUtil.upload(loginPage, file,
+            ContentTypeEnum.CONTENT_TYPE_GIF.getName(),
+            MediaTypeEnum.MEDIA_TYPE_DOC.getName());
+        SendMsgResponse msgResponse = sendMsg47(mediaId, toUser, loginPage);
+
+        ScheduledExecutorService scheduledExecutorService = userQuestionThread.get(toUser);
+        Integer finalI = i;
+        scheduledExecutorService.schedule(
+            () -> {
+                //清理redis
+                Integer cacheQuestionId = redisService.get("car1:" + toUser, Integer.class);
+                if (!finalI.equals(cacheQuestionId)) {
+                    return;
+                }
+
+                //撤回倒计时
+                revokeMsg(msgResponse.getLocalID(), msgResponse.getMsgID(), toUser);
+                //答案
+                String msg = "作答超时，公布答案~" + "\n" + questionBank.getAnswer() + "\n" + questionBank.getExplains();
+                //回复
+                sendMsg1(msg, toUser, loginPage);
+
+                if (finalI == 100) {
+                    //100道题，刷题结束
+                    scheduledExecutorService.shutdownNow();
+                    userQuestionThread.remove(toUser);
+                    userQuestionList.remove(toUser);
+                    sendMsg1("刷题结束~", toUser, loginPage);
+                } else {
+                    //下一题
+                    redisService.set("car1:" + toUser, finalI + 1);
+                }
+            }, 60, TimeUnit.SECONDS
+        );
     }
 
     /**
