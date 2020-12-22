@@ -141,10 +141,11 @@ public class WeChatService {
                 userQuestionThread.put(toUser, scheduledExecutorService);
                 userQuestionList.put(toUser, questionBankList);
 
+                //第一题
+                userQuestionIndex.put(toUser, 0);
                 //立即执行，随后60秒执行一次
                 scheduledExecutorService.scheduleAtFixedRate(() -> {
                     //发送问题
-                    System.out.println("尝试发送试题...");
                     SendQuestion(toUser, loginPage, questionBankList);
                 }, 0, 1, TimeUnit.SECONDS);
 
@@ -158,16 +159,17 @@ public class WeChatService {
             scheduledExecutorService.shutdownNow();
             userQuestionThread.remove(toUser);
             userQuestionList.remove(toUser);
+            userQuestionIndex.remove(toUser);
             redisService.delete("car1:" + toUser);
             sendMsg1("已退出", toUser, loginPage);
             return;
         } else if ("ABCD".contains(content)) {
-            Integer i = redisService.get("car1:" + toUser, Integer.class);
-            if (i == null) {
-                return;
-            }
             List<QuestionBankPO> list = userQuestionList.get(toUser);
             if (list == null) {
+                return;
+            }
+            Integer i = userQuestionIndex.get(toUser);
+            if (i == null) {
                 return;
             }
             QuestionBankPO questionBank = list.get(i);
@@ -196,12 +198,15 @@ public class WeChatService {
                 scheduledExecutorService.shutdownNow();
                 userQuestionThread.remove(toUser);
                 userQuestionList.remove(toUser);
+                userQuestionIndex.remove(toUser);
                 redisService.delete("car1:" + toUser);
                 Integer score = userQuestionScore.get(toUser);
                 sendMsg1("刷题结束~ 得分：" + score, toUser, loginPage);
             } else {
                 //下一题
-                redisService.set("car1:" + toUser, i + 1);
+                int next = i + 1;
+                redisService.set("car1:" + toUser, next);
+                userQuestionIndex.put(toUser, next);
             }
             return;
         } else {
@@ -222,10 +227,14 @@ public class WeChatService {
      */
     @SneakyThrows
     private void SendQuestion(String toUser, LoginPagePO loginPage, List<QuestionBankPO> questionBankList) {
+        System.out.println("尝试发送试题...");
+
         Integer i = userQuestionIndex.get(toUser);
         if (i == null) {
             i = 0;
         }
+        //暂存当前题目
+        redisService.set("car1:" + toUser, i);
         Integer thisQuestionId = redisService.get("car1:" + toUser, Integer.class);
         if (i.equals(thisQuestionId)) {
             return;
@@ -233,9 +242,6 @@ public class WeChatService {
 
         String msgText;
         QuestionBankPO questionBank = questionBankList.get(i);
-        //暂存当前题目
-        redisService.set("car1:" + toUser, i, 60);
-
         String url = questionBank.getUrl();
         if (url != null) {
             File file = HttpsUtil.downFile(url, FileTypeEnum.FILE_TYPE_JPEG.getName());
@@ -285,11 +291,15 @@ public class WeChatService {
                     scheduledExecutorService.shutdownNow();
                     userQuestionThread.remove(toUser);
                     userQuestionList.remove(toUser);
+                    userQuestionIndex.remove(toUser);
                     redisService.delete("car1:" + toUser);
+
                     sendMsg1("刷题结束~", toUser, loginPage);
                 } else {
                     //下一题
-                    redisService.set("car1:" + toUser, finalI + 1);
+                    int next = finalI + 1;
+                    redisService.set("car1:" + toUser, next);
+                    userQuestionIndex.put(toUser, next);
                 }
             }, 60, TimeUnit.SECONDS
         );
