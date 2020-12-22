@@ -144,6 +144,7 @@ public class WeChatService {
 
                 //第一题
                 userQuestionIndex.put(toUser, 0);
+                redisService.set("car1:" + toUser, 999);
                 //立即执行，随后60秒执行一次
                 scheduledExecutorService.scheduleAtFixedRate(() -> {
                     //发送问题
@@ -237,7 +238,10 @@ public class WeChatService {
         if (i == null) {
             i = 0;
         }
-        //暂存当前题目
+        if (i.equals(redisService.get("car1:" + toUser, Integer.class))) {
+            return;
+        }
+        //暂存当前题目, 下次进来相同就不发
         redisService.set("car1:" + toUser, i);
 
         String msgText;
