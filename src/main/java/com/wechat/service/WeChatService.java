@@ -146,6 +146,7 @@ public class WeChatService {
 
                 //第一题
                 userQuestionIndex.put(toUser, 0);
+                userQuestionScore.put(toUser, 0);
                 redisCache.setCacheObject("car1:" + toUser, 999);
                 //立即执行，随后60秒执行一次
                 scheduledExecutorService.scheduleAtFixedRate(() -> {
@@ -168,7 +169,8 @@ public class WeChatService {
             SendMsgResponse msgResponse = userQuestionRollBackId.get(toUser);
             userQuestionRollBackId.remove(toUser);
             revokeMsg(msgResponse.getLocalID(), msgResponse.getMsgID(), toUser);
-            sendMsg1("已退出", toUser, loginPage);
+            Integer score = userQuestionScore.get(toUser);
+            sendMsg1("已退出，得分：" + score, toUser, loginPage);
             return;
         } else if ("ABCD".contains(content)) {
             List<QuestionBankPO> list = userQuestionList.get(toUser);
@@ -184,11 +186,7 @@ public class WeChatService {
             //积分
             if (bingo) {
                 Integer score = userQuestionScore.get(toUser);
-                if (score == null) {
-                    userQuestionScore.put(toUser, 0);
-                } else {
-                    userQuestionScore.put(toUser, score + 1);
-                }
+                userQuestionScore.put(toUser, score + 1);
             }
             //回复答案
             String msg =
@@ -210,9 +208,12 @@ public class WeChatService {
                 Integer score = userQuestionScore.get(toUser);
                 sendMsg1("刷题结束~ 得分：" + score, toUser, loginPage);
             } else {
+                //撤回计时
+                SendMsgResponse msgResponse = userQuestionRollBackId.get(toUser);
+                userQuestionRollBackId.remove(toUser);
+                revokeMsg(msgResponse.getLocalID(), msgResponse.getMsgID(), toUser);
                 //下一题
                 int next = i + 1;
-                redisCache.setCacheObject("car1:" + toUser, next);
                 userQuestionIndex.put(toUser, next);
             }
             return;
@@ -305,7 +306,6 @@ public class WeChatService {
                 } else {
                     //下一题
                     int next = finalI + 1;
-                    redisCache.setCacheObject("car1:" + toUser, next);
                     userQuestionIndex.put(toUser, next);
                 }
             }, 60, TimeUnit.SECONDS
